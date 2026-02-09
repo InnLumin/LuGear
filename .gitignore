@@ -1,0 +1,50 @@
+# Ashita Framework specific files
+*.log
+*.tmp
+*.bak
+*.cache
+
+# Windows specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.swp
+*.swo
+
+# macOS specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux specific files
+*~
+
+# IDE specific files
+.vscode/
+.idea/
+*.sublime-*
+
+# Build and distribution files
+bin/
+obj/
+dist/
+build/
+
+# Temporary files
+temp/
+tmp/
+
+# User configuration files (if any contain sensitive data)
+config/
+settings/
+
+# Debug files
+debug.log
+error.log
+
+# Backup files
+*.backup
+*.orig
+
+# Lua specific
+.luac
