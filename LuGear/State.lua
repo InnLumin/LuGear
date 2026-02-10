@@ -2,14 +2,14 @@ local Settings = require("settings")
 local Constants = require("Constants")
 
 ---@class UserSettings
-local DefaultSettings = {
-	GlobalConfig = {
+local DefaultSettings = T({
+	GlobalConfig = T({
 		IsOpen = { true },
 		LevelSyncSetByDefault = true,
-	},
+	}),
 	---@type Sets
 	Sets = {},
-}
+})
 
 local Module = {
 	SelectedJob = Constants.JobArray[1],
