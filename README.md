@@ -2,9 +2,13 @@
 
 A addon for Ashita to make creating luashitacast profiles easier.
 
+## Version
+
+Made currently for Ashita v4.16
+
 ## Disclaimer
 
-I am relatively new to creating Ashita addons. While it's functional and tested, the code might not be the best or they're areas that could be improved. I will try to fix any bugs I come across. Thank you.
+I am relatively new to creating Ashita addons. While it's functional and tested, the code might not be the best or they're areas that could be improved. A lot of the code is admittedly made with the help with AI but using my knowledge of Lua I made sure to try and fix most mistakes. I will try to fix any bugs I come across.
 
 ## Features
 
