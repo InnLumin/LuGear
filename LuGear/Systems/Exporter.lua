@@ -26,50 +26,50 @@ local Module = {}
 ---@param augments string
 ---@return string
 local function FormatAugments(augments)
-	local stats = {}
+	local Stats = {}
 
 	-- 1. Standard parsing logic to get the data
-	local playerPart, petPart = augments:match("^(.-)Pet:%s*(.*)$")
-	if not playerPart then
-		playerPart = augments
+	local PlayerPart, PetPart = augments:match("^(.-)Pet:%s*(.*)$")
+	if not PlayerPart then
+		PlayerPart = augments
 	end
 
 	local function extract(text, prefix)
 		prefix = prefix or ""
 		for stat in text:gmatch("([^+-]+[+-]%d+)") do
-			local clean = stat:match("^%s*(.-)%s*$")
-			if clean and clean ~= "" then
-				table.insert(stats, prefix .. clean)
+			local Clean = stat:match("^%s*(.-)%s*$")
+			if Clean and Clean ~= "" then
+				table.insert(Stats, prefix .. Clean)
 			end
 		end
 	end
 
-	extract(playerPart)
+	extract(PlayerPart)
 
-	if petPart then
-		extract(petPart, "Pet: ")
+	if PetPart then
+		extract(PetPart, "Pet: ")
 	end
 
 	-- 2. Format the table as a literal string for export
-	local formattedEntries = {}
-	for i, val in ipairs(stats) do
-		-- This wraps the value in the correct quotes and adds the manual [i] =
-		-- If the value contains a double quote, we wrap the whole thing in single quotes
-		local entry
-		if val:find('"') then
-			entry = string.format("[%d] = '%s'", i, val)
+	local FormattedEntries = {}
+	for Index, Value in ipairs(Stats) do
+		-- This wraps the Value in the correct quotes and adds the manual [i] =
+		-- If the Value contains a double quote, we wrap the whole thing in single quotes
+		local Entry
+
+		if Value:find('"') then
+			Entry = string.format("[%d] = '%s'", Index, Value)
 		else
-			entry = string.format('[%d] = "%s"', i, val)
+			Entry = string.format('[%d] = "%s"', Index, Value)
 		end
-		table.insert(formattedEntries, entry)
+		table.insert(FormattedEntries, Entry)
 	end
 
 	-- Join them together with commas and wrap in curly braces
-	return table.concat(formattedEntries, ", ")
+	return table.concat(FormattedEntries, ", ")
 end
 
 ---Generates a formatted Lua string representing the gear sets for Luashitacast
-
 ---@return string
 function Module.ExportJobSets()
 	local Sets = SetManager.GetSets(State.SelectedJob)

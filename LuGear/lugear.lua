@@ -1,8 +1,6 @@
--- LuGear.lua | Main root file that sets up the UI
-
 addon.name = "LuGear"
 addon.author = "InnLumin"
-addon.version = "1.0"
+addon.version = "1.0.0"
 addon.desc = "A helper addon to help make, making luashitacast profiles easier."
 
 local Rules = require("UIs/RulesUI/Rules")
