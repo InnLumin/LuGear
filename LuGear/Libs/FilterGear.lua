@@ -1,12 +1,10 @@
--- FilterGear.lua | Allows to filter gear by slot and then get the filter gear.
-
-local ResourceService = AshitaCore:GetResourceManager()
-local MemoryService = AshitaCore:GetMemoryManager()
+local ResourceManager = AshitaCore:GetResourceManager()
+local MemoryManager = AshitaCore:GetMemoryManager()
 
 local State = require("State")
-local GetAugments = require("Modules/GetAugments")
+local GetAugments = require("Libs/GetAugments")
 
-local Inventory = MemoryService:GetInventory()
+local Inventory = MemoryManager:GetInventory()
 
 ---@class Gear
 ---@field Name string
@@ -135,7 +133,7 @@ end
 ---@param target_mask number
 ---@param job_mask number
 local function ProcessInventoryItem(item, item_index, container_id, target_mask, job_mask)
-	local ItemData = ResourceService:GetItemById(item.Id)
+	local ItemData = ResourceManager:GetItemById(item.Id)
 
 	if not ItemData then
 		return

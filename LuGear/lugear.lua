@@ -1,13 +1,11 @@
 addon.name = "LuGear"
 addon.author = "InnLumin"
-addon.version = "1.0.0"
+addon.version = "1.0.1"
 addon.desc = "A helper addon to help make, making luashitacast profiles easier."
 
-local Rules = require("UIs/RulesUI/Rules")
-local Sets = require("UIs/SetsUI/Sets")
-local State = require("State")
-
 local ImGui = require("imgui")
+local State = require("State")
+local Sets = require("UIs/Sets/Sets")
 
 local WindowFlags = bit.bor(ImGuiWindowFlags_NoSavedSettings, ImGuiWindowFlags_NoResize)
 local WindowWidth, WindowHeight = 736, 436
@@ -40,11 +38,6 @@ ashita.events.register("d3d_present", "lugear_present_callback", function()
 				Sets()
 				ImGui.EndTabItem()
 			end
-
-			-- if ImGui.BeginTabItem("Rules") then
-			-- 	Rules()
-			-- 	ImGui.EndTabItem()
-			-- end
 
 			ImGui.EndTabBar()
 		end

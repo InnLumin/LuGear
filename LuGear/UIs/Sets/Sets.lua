@@ -1,8 +1,7 @@
 local ImGui = require("imgui")
-
 local Header = require("Components/Header")
-local EquipmentGrid = require("Components/EquipmentGrid")
-local GearSelection = require("Components/GearSelection")
+local EquipmentGrid = require("UIs/Sets/Components/EquipmentGrid")
+local GearSelection = require("UIs/Sets/Components/GearSelection")
 
 return function()
 	Header()

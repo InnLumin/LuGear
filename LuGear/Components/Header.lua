@@ -1,13 +1,9 @@
--- Header.lua
-
+local ImGui = require("imgui")
 local State = require("State")
-local FilterGear = require("Systems/FilterGear")
-local SetManager = require("Systems/SetManager")
-local Exporter = require("Systems/Exporter")
 local Constants = require("Constants")
-
-local imgui = require("imgui")
-local ImGui = imgui
+local FilterGear = require("Libs/FilterGear")
+local SetManager = require("Libs/SetManager")
+local Exporter = require("Libs/Exporter")
 
 local LevelSyncSetByDefault = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
 

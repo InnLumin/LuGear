@@ -1,4 +1,4 @@
-local ResourceService = AshitaCore:GetResourceManager()
+local ResourceManager = AshitaCore:GetResourceManager()
 
 local ItemData = require("ffxi.itemdata")
 
@@ -16,7 +16,7 @@ return function(item, ritem)
 
 	local output = {}
 	for _, Augment in ipairs(augments) do
-		local RawAugment = ResourceService:GetString("augments", Augment.index)
+		local RawAugment = ResourceManager:GetString("augments", Augment.index)
 		if RawAugment and type(RawAugment) == "string" then
 			table.insert(output, string.format(RawAugment, Augment.value))
 		end

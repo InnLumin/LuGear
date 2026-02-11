@@ -1,23 +1,9 @@
--- SetManager.lua | Handles set data. Adding, removing, getting and, level sync
-
-local ResourceService = AshitaCore:GetResourceManager()
+local ResourceManager = AshitaCore:GetResourceManager()
 
 local State = require("State")
 
 local Sets = State.UserSettings.Sets
 local LevelSyncSetByDefault = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
-
---[[
-	DRG = {
-		Engage = {
-			LevelSyncSet = false,
-			Slots = {
-				Main = "Strongest Dragoon Weapon",
-				Body = { Name = "Dragoon Chest", Augment = { [1] = "ATK+10" [2] = "HP+100" } }
-			}
-		}
-	}
-]]
 
 local Module = {}
 
@@ -26,11 +12,9 @@ local Module = {}
 local function SortLevelSyncList(list)
 	table.sort(list, function(a, b)
 		-- Extract names from objects
-		local NameA = type(a) == "table" and a.Name or a
-		local NameB = type(b) == "table" and b.Name or b
 
-		local ItemA = ResourceService:GetItemByName(NameA, 0)
-		local ItemB = ResourceService:GetItemByName(NameB, 0)
+		local ItemA = ResourceManager:GetItemByName(a.Name, 0)
+		local ItemB = ResourceManager:GetItemByName(b.Name, 0)
 
 		local LevelA = ItemA and ItemA.Level or 0
 		local LevelB = ItemB and ItemB.Level or 0
@@ -39,7 +23,6 @@ local function SortLevelSyncList(list)
 	end)
 end
 
--- Returns the set data for a specific job and set name
 ---@param job_name JobName
 ---@param set_name string
 ---@return GearSet
@@ -47,14 +30,12 @@ function Module.GetSet(job_name, set_name)
 	return Sets[job_name] and Sets[job_name][set_name]
 end
 
--- Returns all sets associated with a specific job
 ---@param job_name JobName
 ---@return SetDefinitions
 function Module.GetSets(job_name)
 	return Sets[job_name]
 end
 
--- Adds a new set to a specific job
 ---@param job_name JobName
 ---@param set_name string
 ---@param level_sync_set boolean?
@@ -77,7 +58,6 @@ function Module.AddSet(job_name, set_name, level_sync_set)
 	State.SaveSettings()
 end
 
--- Renames an existing set for a job
 ---@param job_name JobName
 ---@param old_name string
 ---@param new_name string
@@ -95,7 +75,6 @@ function Module.RenameSet(job_name, old_name, new_name)
 	State.SaveSettings()
 end
 
--- Deletes a set from a job
 ---@param job_name JobName
 ---@param set_name string
 function Module.DeleteSet(job_name, set_name)
@@ -106,7 +85,6 @@ function Module.DeleteSet(job_name, set_name)
 	State.SaveSettings()
 end
 
--- Toggles the level sync state for a set
 ---@param job_name JobName
 ---@param set_name string
 function Module.ToggleLevelSync(job_name, set_name)
