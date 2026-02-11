@@ -6,6 +6,7 @@ addon.desc = "A helper addon to help make, making luashitacast profiles easier."
 local ImGui = require("imgui")
 local State = require("State")
 local Sets = require("UIs/Sets/Sets")
+local Export = require("UIs/Export/Export")
 
 local WindowFlags = bit.bor(ImGuiWindowFlags_NoSavedSettings, ImGuiWindowFlags_NoResize)
 local WindowWidth, WindowHeight = 736, 436
@@ -36,6 +37,11 @@ ashita.events.register("d3d_present", "lugear_present_callback", function()
 		if ImGui.BeginTabBar("MainTabBar") then
 			if ImGui.BeginTabItem("Sets") then
 				Sets()
+				ImGui.EndTabItem()
+			end
+
+			if ImGui.BeginTabItem("Export") then
+				Export()
 				ImGui.EndTabItem()
 			end
 

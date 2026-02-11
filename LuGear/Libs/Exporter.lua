@@ -73,6 +73,9 @@ end
 ---@return string
 function Module.ExportJobSets()
 	local Sets = SetManager.GetSets(State.SelectedJob)
+	if not Sets then
+		return ""
+	end
 
 	local Lines = {}
 	table.insert(Lines, "local sets = {")
