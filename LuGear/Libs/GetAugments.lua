@@ -1,6 +1,6 @@
 local ResourceManager = AshitaCore:GetResourceManager()
 
-local ItemData = require("ffxi.itemdata")
+local ItemData = require("Vendor.itemdata")
 
 return function(item, ritem)
 	if item == nil or ritem == nil then

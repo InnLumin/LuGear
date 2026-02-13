@@ -2,7 +2,7 @@ local ResourceManager = AshitaCore:GetResourceManager()
 local MemoryManager = AshitaCore:GetMemoryManager()
 
 local State = require("State")
-local GetAugments = require("Libs/GetAugments")
+local GetAugments = require("Libs.GetAugments")
 
 local Inventory = MemoryManager:GetInventory()
 

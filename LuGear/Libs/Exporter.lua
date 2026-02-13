@@ -1,4 +1,4 @@
-local SetManager = require("Libs/SetManager")
+local SetManager = require("Libs.SetManager")
 local State = require("State")
 
 local OrderedSlots = {

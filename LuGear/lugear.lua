@@ -1,11 +1,11 @@
 addon.name = "LuGear"
 addon.author = "InnLumin"
-addon.version = "1.0.1"
+addon.version = "1.0.2"
 addon.desc = "A helper addon to help make, making luashitacast profiles easier."
 
 local ImGui = require("imgui")
 local State = require("State")
-local Sets = require("UIs/Sets/Sets")
+local Sets = require("UIs.Sets.Sets")
 
 local WindowFlags = bit.bor(ImGuiWindowFlags_NoSavedSettings, ImGuiWindowFlags_NoResize)
 local WindowWidth, WindowHeight = 736, 436

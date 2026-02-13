@@ -1,7 +1,7 @@
 local ImGui = require("imgui")
 local State = require("State")
-local SetManager = require("Libs/SetManager")
-local FilterGear = require("Libs/FilterGear")
+local SetManager = require("Libs.SetManager")
+local FilterGear = require("Libs.FilterGear")
 
 local SearchText = {
 	Text = { "" },
