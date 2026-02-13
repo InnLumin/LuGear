@@ -1,6 +1,9 @@
 local ImGui = require("imgui")
 local Exporter = require("Libs/Exporter")
 
+local PreviewFlags = bit.bor(ImGuiInputTextFlags_ReadOnly, ImGuiWindowFlags_HorizontalScrollbar)
+local PreviewSize = { -1, -1 }
+
 return function()
 	local ExportedSets = { Exporter.ExportJobSets() }
 
@@ -9,14 +12,12 @@ return function()
 			ImGui.SetClipboardText(ExportedSets[1])
 		end
 
-		if ImGui.BeginChild("ExportTextWindow", { 0, 0 }, true) then
-			ImGui.InputTextMultiline(
-				"##export_code",
-				ExportedSets,
-				#ExportedSets[1] + 1024,
-				{ 700, 1024 },
-				ImGuiInputTextFlags_ReadOnly
-			)
+		if ImGui.BeginChild("ExportPreviewRegion", { 0, 0 }, false) then
+			ImGui.PushStyleVar(ImGuiStyleVar_FramePadding, { 0, 0 })
+
+			ImGui.InputTextMultiline("##export_code", ExportedSets, #ExportedSets[1] + 1024, PreviewSize, PreviewFlags)
+
+			ImGui.PopStyleVar()
 
 			ImGui.EndChild()
 		end
