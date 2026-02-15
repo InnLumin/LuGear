@@ -34,6 +34,8 @@ local function FormatAugments(augments)
 		PlayerPart = augments
 	end
 
+	PlayerPart = PlayerPart:gsub("%.%s+", ".")
+
 	local function extract(text, prefix)
 		prefix = prefix or ""
 		for stat in text:gmatch("([^+-]+[+-]%d+)") do
@@ -53,8 +55,6 @@ local function FormatAugments(augments)
 	-- 2. Format the table as a literal string for export
 	local FormattedEntries = {}
 	for Index, Value in ipairs(Stats) do
-		-- This wraps the Value in the correct quotes and adds the manual [i] =
-		-- If the Value contains a double quote, we wrap the whole thing in single quotes
 		local Entry
 
 		if Value:find('"') then
