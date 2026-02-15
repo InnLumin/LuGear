@@ -10,7 +10,7 @@ local Sets = require("UIs.Sets.Sets")
 local WindowFlags = bit.bor(ImGuiWindowFlags_NoSavedSettings, ImGuiWindowFlags_NoResize)
 local WindowWidth, WindowHeight = 736, 436
 
-local IsOpen = State.UserSettings.GlobalConfig.IsOpen
+local IsOpen = { false }
 
 -- Callback for addon command
 ---@return nil
@@ -21,6 +21,10 @@ ashita.events.register("command", "lugear_command_callback", function(args)
 		IsOpen[1] = not IsOpen[1]
 		State.SaveSettings()
 	end
+end)
+
+ashita.events.register("load", "lugear_load_callback", function()
+	State.Init()
 end)
 
 -- Callback for rendering the UI

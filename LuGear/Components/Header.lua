@@ -60,9 +60,7 @@ local function SetSelection()
 
 	local Sets = SetManager.GetSets(State.SelectedJob)
 
-	local PreviewName = State.SelectedSet
-
-	if ImGui.BeginCombo("##SetCombo", PreviewName) then
+	if ImGui.BeginCombo("##SetCombo", State.SelectedSet) then
 		if Sets then
 			for Name, _ in pairs(Sets) do
 				if ImGui.Selectable(Name, State.SelectedSet == Name) then

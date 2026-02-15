@@ -2,9 +2,6 @@ local ResourceManager = AshitaCore:GetResourceManager()
 
 local State = require("State")
 
-local Sets = State.UserSettings.Sets
-local LevelSyncSetByDefault = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
-
 local Module = {}
 
 -- Helper to sort priority list by level (Highest -> Lowest)
@@ -23,23 +20,42 @@ local function SortLevelSyncList(list)
 	end)
 end
 
----@param job_name JobName
----@param set_name string
----@return GearSet
-function Module.GetSet(job_name, set_name)
-	return Sets[job_name] and Sets[job_name][set_name]
+---@return Sets
+local function GetUserSets()
+	return State.UserSettings.Sets
 end
 
 ---@param job_name JobName
----@return SetDefinitions
+---@param set_name string
+---@return GearSet | nil
+function Module.GetSet(job_name, set_name)
+	local Sets = Module.GetSets(job_name)
+
+	if not Sets then
+		return nil
+	end
+
+	return Sets[set_name]
+end
+
+---@param job_name JobName
+---@return SetDefinitions | nil
 function Module.GetSets(job_name)
-	return Sets[job_name]
+	local UserSets = GetUserSets()
+	if not UserSets then
+		return nil
+	end
+
+	return UserSets[job_name]
 end
 
 ---@param job_name JobName
 ---@param set_name string
 ---@param level_sync_set boolean?
 function Module.AddSet(job_name, set_name, level_sync_set)
+	local Sets = GetUserSets()
+	local LevelSyncSetByDefault = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
+
 	if not Sets[job_name] then
 		Sets[job_name] = {}
 	end
@@ -53,9 +69,8 @@ function Module.AddSet(job_name, set_name, level_sync_set)
 			LevelSyncSet = level_sync_set,
 			Slots = {},
 		}
+		State.SaveSettings()
 	end
-
-	State.SaveSettings()
 end
 
 ---@param job_name JobName
@@ -66,13 +81,13 @@ function Module.RenameSet(job_name, old_name, new_name)
 		return
 	end
 
-	local JobSets = Sets[job_name]
-	if JobSets and JobSets[old_name] then
-		JobSets[new_name] = JobSets[old_name]
-		JobSets[old_name] = nil
-	end
+	local Sets = Module.GetSets(job_name)
 
-	State.SaveSettings()
+	if Sets and Sets[old_name] then
+		Sets[new_name] = Sets[old_name]
+		Sets[old_name] = nil
+		State.SaveSettings()
+	end
 end
 
 ---@param job_name JobName
@@ -80,9 +95,8 @@ end
 function Module.DeleteSet(job_name, set_name)
 	if Sets[job_name] then
 		Sets[job_name][set_name] = nil
+		State.SaveSettings()
 	end
-
-	State.SaveSettings()
 end
 
 ---@param job_name JobName
