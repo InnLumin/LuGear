@@ -69,6 +69,7 @@ function Module.AddSet(job_name, set_name, level_sync_set)
 			LevelSyncSet = level_sync_set,
 			Slots = {},
 		}
+		State.SelectedSet = set_name
 		State.SaveSettings()
 	end
 end
@@ -86,6 +87,7 @@ function Module.RenameSet(job_name, old_name, new_name)
 	if Sets and Sets[old_name] then
 		Sets[new_name] = Sets[old_name]
 		Sets[old_name] = nil
+		State.SelectedSet = new_name
 		State.SaveSettings()
 	end
 end
@@ -93,10 +95,16 @@ end
 ---@param job_name JobName
 ---@param set_name string
 function Module.DeleteSet(job_name, set_name)
-	if Sets[job_name] then
-		Sets[job_name][set_name] = nil
-		State.SaveSettings()
+	local Sets = Module.GetSets(job_name)
+
+	if not Sets then
+		return
 	end
+
+	Sets[set_name] = nil
+	State.SelectedSet = "None"
+	State.SelectedSlot = "None"
+	State.SaveSettings()
 end
 
 ---@param job_name JobName
@@ -123,6 +131,11 @@ function Module.UpdateSlotForJobSet(job_name, set_name, slot_name, item_name, au
 	end
 
 	local SlotGear = Set.Slots[slot_name] or {}
+
+	-- For non-level sync sets, clear all other items before update
+	if not Set.LevelSyncSet then
+		SlotGear = {}
+	end
 
 	-- Find existing item in the list
 	local FoundIndex = nil

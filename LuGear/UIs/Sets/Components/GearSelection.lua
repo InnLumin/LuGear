@@ -29,7 +29,6 @@ local function ShowGearTooltip(gear_data)
 end
 
 -- Renders a selectable menu item for a piece of gear
--- Now simplified to work with standardized table<{ Name: string, Augments?: table<string> }>
 ---@param gear_data Gear
 ---@param current_gear table
 ---@param selected_job string
@@ -57,11 +56,6 @@ end
 ---@return nil
 local function RenderSearchBar()
 	ImGui.InputText("##Search", SearchText.Text, SearchText.Size)
-
-	if SearchText.Text[1] == "" then
-		ImGui.SameLine()
-		ImGui.TextDisabled("(Search)")
-	end
 
 	if SearchText.Text[1] ~= "" then
 		ImGui.SameLine()

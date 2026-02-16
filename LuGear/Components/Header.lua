@@ -4,18 +4,13 @@ local Constants = require("Constants")
 local FilterGear = require("Libs.FilterGear")
 local SetManager = require("Libs.SetManager")
 local Exporter = require("Libs.Exporter")
+local Popup = require("Components.Popup")
 
 local LevelSyncSetByDefault = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
 
 local NewSetData = {
 	Name = { "" },
 	IsLevelSync = { LevelSyncSetByDefault },
-	Size = 64,
-}
-
-local EditSetData = {
-	Name = { "" },
-	IsLevelSync = { false },
 	Size = 64,
 }
 
@@ -72,155 +67,143 @@ local function SetSelection()
 	end
 end
 
----@return nil
+local NewSetName = { "" }
+local NewSetLevelSync = { LevelSyncSetByDefault }
+local NewSetSize = { 248, 0 }
+local NewSetPopup, ToggleNewSetPopup = Popup("New Set", "NewSetPopup", NewSetSize)
+
 -- Renders the button and modal for creating a new gear set
+---@return nil
 local function NewSet()
 	if ImGui.Button("New Set") then
-		ImGui.OpenPopup("New Set Popup")
+		ToggleNewSetPopup()
 	end
 
-	if ImGui.BeginPopupModal("New Set Popup", nil, ImGuiWindowFlags_AlwaysAutoResize) then
-		ImGui.Text("Gear set for: " .. State.SelectedJob)
-		ImGui.Separator()
-
+	NewSetPopup(function()
 		ImGui.Text("Name")
-		ImGui.InputText("##popup_setname", NewSetData.Name, NewSetData.Size)
-
-		ImGui.Checkbox("Level Sync", NewSetData.IsLevelSync)
+		ImGui.InputText("##popup_setname", NewSetName, #NewSetName[1] + 1024)
+		ImGui.Checkbox("Level Sync", NewSetLevelSync)
 
 		ImGui.Separator()
 
 		if ImGui.Button("Create", { 120, 0 }) then
-			local Name = NewSetData.Name[1]
+			local Name = NewSetName[1]
 
 			if Name ~= "" then
-				SetManager.AddSet(State.SelectedJob, Name, NewSetData.IsLevelSync[1])
+				SetManager.AddSet(State.SelectedJob, Name, NewSetLevelSync[1])
 
-				State.SelectedSet = Name
-
-				NewSetData.Name[1] = ""
-				NewSetData.IsLevelSync[1] = LevelSyncSetByDefault
-				ImGui.CloseCurrentPopup()
+				NewSetName[1] = ""
+				NewSetLevelSync[1] = LevelSyncSetByDefault
+				ToggleNewSetPopup()
 			end
 		end
 
 		ImGui.SameLine()
 
 		if ImGui.Button("Cancel", { 120, 0 }) then
-			ImGui.CloseCurrentPopup()
+			ToggleNewSetPopup()
 		end
-
-		ImGui.EndPopup()
-	end
+	end)
 end
+
+local EditSetName = { "" }
+local EditLevelSyncSet = { false }
+local EditSize = { 248, 0 }
+local DrawEditPopup, ToggleEditPopup = Popup("Edit", "HeaderEdit", EditSize)
 
 ---@return nil
 -- Renders the options button and modal for editing an existing set
 local function EditSet()
-	-- If the selected set isn't empty show the options
-	if State.SelectedSet ~= "" and State.SelectedSet ~= "None" then
-		if ImGui.Button("Options") then
-			-- Pre-fill the edit data with current values
-			EditSetData.Name[1] = State.SelectedSet
-
-			local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
-
-			EditSetData.IsLevelSync[1] = Set.LevelSyncSet
-
-			ImGui.OpenPopup("EditSetPopup")
-		end
+	if State.SelectedSet == "" or State.SelectedSet == "None" then
+		return
 	end
 
-	if ImGui.BeginPopupModal("EditSetPopup", nil, ImGuiWindowFlags_AlwaysAutoResize) then
-		ImGui.Text("Editing Set: " .. State.SelectedSet)
+	if ImGui.Button("Edit") then
+		EditSetName[1] = State.SelectedSet
+
+		local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
+		local IsLevelSyncSet = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
+
+		if Set then
+			IsLevelSyncSet = Set.LevelSyncSet
+		end
+
+		EditLevelSyncSet[1] = IsLevelSyncSet
+		ToggleEditPopup()
+	end
+
+	DrawEditPopup(function()
+		ImGui.Text("Rename")
+		ImGui.InputText("##edit_setname", EditSetName, #EditSetName[1] + 1024)
+
+		ImGui.Checkbox("Level Sync", EditLevelSyncSet)
+
 		ImGui.Separator()
 
-		ImGui.Text("Rename:")
-		ImGui.InputText("##edit_setname", EditSetData.Name, 64)
-
-		ImGui.Checkbox("Level Sync", EditSetData.IsLevelSync)
-
-		ImGui.Separator()
-
-		-- CONFIRM / SAVE
+		-- Save
 		if ImGui.Button("Save Changes", { 120, 0 }) then
 			local OldName = State.SelectedSet
-			local NewName = EditSetData.Name[1]
+			local NewName = EditSetName[1]
 
-			-- 1. Handle Rename
-			if OldName ~= NewName then
-				SetManager.RenameSet(State.SelectedJob, OldName, NewName)
-				State.SelectedSet = NewName
-			end
+			SetManager.RenameSet(State.SelectedJob, OldName, NewName)
 
-			-- 2. Handle LevelSync Toggle if it changed
 			local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
 
-			if Set.LevelSyncSet ~= EditSetData.IsLevelSync[1] then
+			if Set and Set.LevelSyncSet ~= EditLevelSyncSet[1] then
 				SetManager.ToggleLevelSync(State.SelectedJob, State.SelectedSet)
 			end
 
-			ImGui.CloseCurrentPopup()
+			ToggleEditPopup()
 		end
 
 		ImGui.SameLine()
 
-		-- DELETE
-		ImGui.PushStyleColor(ImGuiCol_Button, { 0.6, 0.1, 0.1, 1.0 }) -- Red for danger
+		-- Delete
 		if ImGui.Button("Delete Set", { 120, 0 }) then
 			SetManager.DeleteSet(State.SelectedJob, State.SelectedSet)
-			State.SelectedSet = "None" -- Reset selection
-			ImGui.CloseCurrentPopup()
-		end
-		ImGui.PopStyleColor()
-
-		if ImGui.Button("Cancel", { 248, 0 }) then
-			ImGui.CloseCurrentPopup()
+			ToggleEditPopup()
 		end
 
-		ImGui.EndPopup()
-	end
+		--- Cancel
+		if ImGui.Button("Cancel", EditSize) then
+			ToggleEditPopup()
+		end
+	end)
 end
 
 local ExportText = { "" }
+local ExportSize = { 512, 0 }
+local DrawExportPopup, ToggleExport = Popup("Export", "HeaderExport", ExportSize)
 
 ---@return nil
--- Renders the export button and modal for generating Luashitacast code
 local function ExportSet()
-	if State.SelectedSet ~= "" and State.SelectedSet ~= "None" then
-		if ImGui.Button("Export") then
-			-- We pass the internal 'Sets' table from your SetManager
-			-- You might need a Module.GetFullTable() in SetManager to access it
-			ExportText[1] = Exporter.ExportJobSets()
-			ImGui.OpenPopup("ExportOutput")
-		end
+	if State.SelectedSet == "" or State.SelectedSet == "None" then
+		return
 	end
 
-	-- THE EXPORT MODAL
-	if ImGui.BeginPopupModal("ExportOutput", nil, ImGuiWindowFlags_NoResize) then
-		ImGui.Text("Exported Code:")
-		ImGui.Separator()
+	if ImGui.Button("Export" .. "##" .. "HeaderExportBtn") then
+		ExportText[1] = Exporter.ExportJobSets()
+		ToggleExport()
+	end
 
-		if ImGui.Button("Copy to Clipboard", { 500, 0 }) then
-			-- This Ashita/ImGui function pushes the string to your OS clipboard
-			ImGui.SetClipboardText(ExportText[1])
-			-- Optional: You could set a 'Copied!' status flag here to show a temporary message
-		end
-
-		-- Multi-line text box for easy copying
+	DrawExportPopup(function()
 		ImGui.InputTextMultiline(
 			"##export_code",
 			ExportText,
 			#ExportText[1] + 1024,
-			{ 500, 300 },
+			{ -1, 200 },
 			ImGuiInputTextFlags_ReadOnly
 		)
 
-		if ImGui.Button("Close", { 500, 0 }) then
-			ImGui.CloseCurrentPopup()
+		ImGui.Separator()
+
+		if ImGui.Button("Copy to Clipboard", ExportSize) then
+			ImGui.SetClipboardText(ExportText[1])
 		end
-		ImGui.EndPopup()
-	end
+		if ImGui.Button("Close", ExportSize) then
+			ToggleExport()
+		end
+	end)
 end
 
 return function()
