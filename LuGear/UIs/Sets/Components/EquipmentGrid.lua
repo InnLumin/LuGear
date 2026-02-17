@@ -2,6 +2,7 @@ local ImGui = require("imgui")
 local State = require("State")
 local FilterGear = require("Libs.FilterGear")
 local SetManager = require("Libs.SetManager")
+local Color = require("Libs.Color")
 
 local EquipmentSlots = {
 	{ "Main", "Sub", "Ranged", "Ammo" },
@@ -41,18 +42,22 @@ return function()
 
 					ImGui.TableNextColumn()
 
-					if SetSlots and #SetSlots > 0 then
+					if SetSlots and #SetSlots > 1 then
 						local FirstItem = SetSlots[1]
-						if FirstItem and FirstItem.Name then
-							ButtonLabel = FirstItem.Name .. " (+" .. (#SetSlots - 1) .. ")"
-						end
+						ButtonLabel = FirstItem.Name .. " [+" .. (#SetSlots - 1) .. " others" .. "]"
+					elseif SetSlots and #SetSlots == 1 then
+						local FirstItem = SetSlots[1]
+						ButtonLabel = FirstItem.Name
 					end
 
 					if IsActive then
-						local Gold = { 0.8, 0.6, 0.0, 1.0 }
-						ImGui.PushStyleColor(ImGuiCol_Button, Gold)
-						ImGui.PushStyleColor(ImGuiCol_ButtonHovered, Gold)
-						ImGui.PushStyleColor(ImGuiCol_ButtonActive, Gold)
+						local R, G, B, A = ImGui.GetStyleColorVec4(ImGuiCol_Button)
+						local ButtonColor = { R, G, B, A }
+						local DarkenButton = Color.DarkenColor(ButtonColor, 0.2)
+
+						ImGui.PushStyleColor(ImGuiCol_Button, DarkenButton)
+						ImGui.PushStyleColor(ImGuiCol_ButtonHovered, DarkenButton)
+						ImGui.PushStyleColor(ImGuiCol_ButtonActive, DarkenButton)
 					end
 
 					if ImGui.Button(TruncateText(ButtonLabel, 7) .. "##" .. SlotName, { 64, 64 }) then
