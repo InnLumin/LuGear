@@ -22,6 +22,22 @@ local function TruncateText(text, max_chars)
 	return text
 end
 
+local function GetBlueColor(color)
+	local TargetLuma = Color.GetLuminance(color)
+
+	local BlueColor = { 0.3, 0.5, 0.9, color[4] }
+	local BlueLuma = Color.GetLuminance(BlueColor)
+
+	local Ratio = TargetLuma / BlueLuma
+
+	return {
+		math.min(1, BlueColor[1] * Ratio),
+		math.min(1, BlueColor[2] * Ratio),
+		math.min(1, BlueColor[3] * Ratio),
+		color[4],
+	}
+end
+
 ---@return nil
 -- Renders the 4x4 equipment grid UI component
 return function()
@@ -39,39 +55,41 @@ return function()
 
 					local ButtonLabel = SlotName
 					local IsActive = (State.SelectedSlot == SlotName)
+					local IsFilled = (SetSlots and #SetSlots > 0)
+					local FinalColor = Color.GetColor(ImGuiCol_Button)
 
 					ImGui.TableNextColumn()
 
-					if SetSlots and #SetSlots > 1 then
-						local FirstItem = SetSlots[1]
-						ButtonLabel = FirstItem.Name .. " [+" .. (#SetSlots - 1) .. " others" .. "]"
-					elseif SetSlots and #SetSlots == 1 then
-						local FirstItem = SetSlots[1]
-						ButtonLabel = FirstItem.Name
+					if IsFilled then
+						local FirstItem = SetSlots and SetSlots[1] or nil
+
+						if FirstItem and #SetSlots > 1 then
+							ButtonLabel = FirstItem.Name .. " [+" .. (#SetSlots - 1) .. " others" .. "]"
+						elseif FirstItem then
+							ButtonLabel = FirstItem.Name
+						end
+
+						FinalColor = GetBlueColor(FinalColor)
 					end
 
 					if IsActive then
-						local R, G, B, A = ImGui.GetStyleColorVec4(ImGuiCol_Button)
-						local ButtonColor = { R, G, B, A }
-						local DarkenButton = Color.DarkenColor(ButtonColor, 0.2)
-
-						ImGui.PushStyleColor(ImGuiCol_Button, DarkenButton)
-						ImGui.PushStyleColor(ImGuiCol_ButtonHovered, DarkenButton)
-						ImGui.PushStyleColor(ImGuiCol_ButtonActive, DarkenButton)
+						FinalColor = Color.Darken(FinalColor, 0.3)
 					end
+
+					ImGui.PushStyleColor(ImGuiCol_Button, FinalColor)
+					ImGui.PushStyleColor(ImGuiCol_ButtonHovered, Color.Saturate(FinalColor, 0.1))
+					ImGui.PushStyleColor(ImGuiCol_ButtonActive, FinalColor)
 
 					if ImGui.Button(TruncateText(ButtonLabel, 7) .. "##" .. SlotName, { 64, 64 }) then
 						State.SelectedSlot = SlotName
 						FilterGear.UpdateFilteredGear(SlotName)
 					end
 
-					if IsActive then
-						ImGui.PopStyleColor(3)
-					end
+					ImGui.PopStyleColor(3)
 
 					if ImGui.IsItemHovered() and ButtonLabel ~= SlotName then
 						ImGui.BeginTooltip()
-						ImGui.TextColored({ 0.4, 0.7, 1.0, 1.0 }, SlotName) -- Blue category header
+						ImGui.TextColored({ 0.4, 0.7, 1.0, 1.0 }, SlotName)
 						ImGui.Separator()
 						ImGui.Text(ButtonLabel)
 						ImGui.EndTooltip()
