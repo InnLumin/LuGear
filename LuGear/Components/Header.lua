@@ -5,14 +5,9 @@ local FilterGear = require("Libs.FilterGear")
 local SetManager = require("Libs.SetManager")
 local Exporter = require("Libs.Exporter")
 local Popup = require("Components.Popup")
+local Dropdown = require("Components.Dropdown")
 
 local LevelSyncSetByDefault = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
-
-local NewSetData = {
-	Name = { "" },
-	IsLevelSync = { LevelSyncSetByDefault },
-	Size = 64,
-}
 
 ---@return nil
 -- Renders the job selection combo box
@@ -23,26 +18,11 @@ local function JobSelection()
 
 	ImGui.SetNextItemWidth(90)
 
-	if ImGui.BeginCombo("##JobCombo", State.SelectedJob) then
-		for Index, JobName in ipairs(Constants.JobArray) do
-			local IsSelected = (State.SelectedJob == JobName)
-
-			if ImGui.Selectable(JobName, IsSelected) then
-				State.SelectedJob = JobName
-				if State.SelectedSlot then
-					FilterGear.UpdateFilteredGear(State.SelectedSlot)
-				end
-				if State.SelectedSet then
-					State.SelectedSet = "None"
-				end
-			end
-
-			if IsSelected then
-				ImGui.SetItemDefaultFocus()
-			end
-		end
-		ImGui.EndCombo()
-	end
+	Dropdown("##JobsDropdown", Constants.JobArray, State.SelectedJob, function(selected_option)
+		State.SelectedJob = selected_option
+		State.SelectedSlot = "None"
+		State.SelectedSet = "None"
+	end)
 end
 
 ---@return nil
@@ -54,17 +34,15 @@ local function SetSelection()
 	ImGui.SetNextItemWidth(120)
 
 	local Sets = SetManager.GetSets(State.SelectedJob)
+	local SetsName = {}
 
-	if ImGui.BeginCombo("##SetCombo", State.SelectedSet) then
-		if Sets then
-			for Name, _ in pairs(Sets) do
-				if ImGui.Selectable(Name, State.SelectedSet == Name) then
-					State.SelectedSet = Name
-				end
-			end
-		end
-		ImGui.EndCombo()
+	for Name, _ in pairs(Sets or {}) do
+		table.insert(SetsName, Name)
 	end
+
+	Dropdown("##SetsDropdown", SetsName, State.SelectedSet, function(selected_option)
+		State.SelectedSet = selected_option
+	end)
 end
 
 local NewSetName = { "" }

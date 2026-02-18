@@ -4,6 +4,8 @@ local FilterGear = require("Libs.FilterGear")
 local SetManager = require("Libs.SetManager")
 local Color = require("Libs.Color")
 
+local TableFlags = bit.bor(ImGuiTableFlags_NoSavedSettings, ImGuiTableFlags_Borders, ImGuiTableFlags_RowBg)
+
 local EquipmentSlots = {
 	{ "Main", "Sub", "Ranged", "Ammo" },
 	{ "Head", "Neck", "Ear L", "Ear R" },
@@ -45,8 +47,6 @@ return function()
 		ImGui.Text("Equipment")
 		ImGui.Separator()
 
-		local TableFlags = bit.bor(ImGuiTableFlags_NoSavedSettings, ImGuiTableFlags_Borders, ImGuiTableFlags_RowBg)
-
 		if ImGui.BeginTable("EquipTable", 4, TableFlags) then
 			for _, Row in ipairs(EquipmentSlots) do
 				for _, SlotName in ipairs(Row) do
@@ -81,8 +81,12 @@ return function()
 					ImGui.PushStyleColor(ImGuiCol_ButtonActive, FinalColor)
 
 					if ImGui.Button(TruncateText(ButtonLabel, 7) .. "##" .. SlotName, { 64, 64 }) then
-						State.SelectedSlot = SlotName
-						FilterGear.UpdateFilteredGear(SlotName)
+						if State.SelectedSlot == SlotName then
+							State.SelectedSlot = "None"
+						else
+							State.SelectedSlot = SlotName
+							FilterGear.UpdateFilteredGear(SlotName)
+						end
 					end
 
 					ImGui.PopStyleColor(3)
