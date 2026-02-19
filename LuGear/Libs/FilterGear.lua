@@ -204,10 +204,6 @@ function Module.UpdateFilteredGear(slot_name)
 			end
 		end
 	end
-
-	table.sort(FilteredGear, function(a, b)
-		return a.Name:lower() < b.Name:lower()
-	end)
 end
 
 return Module

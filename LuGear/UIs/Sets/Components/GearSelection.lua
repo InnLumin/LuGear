@@ -83,15 +83,11 @@ local function GroupFilteredGear(filtered_items)
 		end
 	end
 
-	table.sort(Names, function(a, b)
-		return a:lower() < b:lower()
-	end)
-
 	return GroupedItems, Names
 end
 
--- Renders the grouped list of gear items
----@param grouped_items table<Gear>
+-- Renders the grouped list of gear items in a Google Sheets-style table
+---@param grouped_items table<string, Gear[]>
 ---@param base_names table
 ---@param current_gear table
 ---@param selected_job string
@@ -99,19 +95,122 @@ end
 ---@param selected_slot string
 ---@return nil
 local function RenderGearList(grouped_items, base_names, current_gear, selected_job, set_name, selected_slot)
-	for _, Name in ipairs(base_names) do
-		local Items = grouped_items[Name]
+	local flags = bit.bor(
+		ImGuiTableFlags_Borders,
+		ImGuiTableFlags_RowBg,
+		ImGuiTableFlags_ScrollY,
+		ImGuiTableFlags_Resizable,
+		ImGuiTableFlags_Sortable
+	)
 
-		if #Items > 1 then
-			if ImGui.TreeNodeEx(Name .. "##Group_" .. Name, ImGuiTreeNodeFlags_SpanFullWidth) then
-				for _, GearData in ipairs(Items) do
-					RenderGearSelectable(GearData, current_gear, selected_job, set_name, selected_slot)
+	-- We'll use 3 columns: Name (with grouping), Level, and Location/Type
+	if ImGui.BeginTable("GearSheetsTable", 3, flags, { 0, 0 }) then
+		ImGui.TableSetupColumn(
+			"Name",
+			bit.bor(ImGuiTableColumnFlags_WidthStretch, ImGuiTableColumnFlags_DefaultSort),
+			0,
+			1
+		)
+		ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, 80, 2)
+		ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 80, 3)
+		ImGui.TableHeadersRow()
+
+		local SortSpecs = ImGui.TableGetSortSpecs()
+		if SortSpecs and SortSpecs.SpecsDirty then
+			local Spec = SortSpecs.Specs
+
+			table.sort(base_names, function(a, b)
+				local ItemA = grouped_items[a][1]
+				local ItemB = grouped_items[b][1]
+
+				local function Compare(value_a, value_b)
+					if value_a == value_b then
+						return nil
+					end
+
+					if Spec.SortDirection == ImGuiSortDirection_Descending then
+						return value_a > value_b
+					else
+						return value_a < value_b
+					end
 				end
-				ImGui.TreePop()
-			end
-		else
-			RenderGearSelectable(Items[1], current_gear, selected_job, set_name, selected_slot)
+
+				local Result
+				if Spec.ColumnUserID == 2 then -- Level
+					Result = Compare((ItemA.Level or 0), (ItemB.Level or 0))
+				elseif Spec.ColumnUserID == 3 then -- Type
+					Result = Compare((ItemA.Type or ""):lower(), (ItemB.Type or ""):lower())
+				else -- Name
+					Result = Compare(a:lower(), b:lower())
+				end
+
+				if Result == nil then
+					local NameA, nameB = a:lower(), b:lower()
+
+					return Compare(NameA, nameB) or false
+				end
+
+				return Result
+			end)
+
+			SortSpecs.SpecsDirty = false -- Mark as handled
 		end
+
+		for _, Name in ipairs(base_names) do
+			local Items = grouped_items[Name]
+
+			-- If multiple items (like same ring in different bags), we still use a Tree
+			-- but we wrap it INSIDE the table row.
+			ImGui.TableNextRow()
+			ImGui.TableNextColumn()
+
+			if #Items > 1 then
+				-- Spreadsheet style group row
+				local node_open = ImGui.TreeNodeEx(
+					Name .. "##Group_" .. Name,
+					bit.bor(ImGuiTreeNodeFlags_SpanFullWidth, ImGuiTreeNodeFlags_OpenOnArrow)
+				)
+
+				-- Tooltip for the group (showing info from the first item)
+				ShowGearTooltip(Items[1])
+
+				if node_open then
+					for _, GearData in ipairs(Items) do
+						ImGui.TableNextRow()
+						ImGui.TableNextColumn()
+						-- Indent sub-items slightly to look like a nested sheet
+						ImGui.Indent(10)
+						RenderGearSelectable(GearData, current_gear, selected_job, set_name, selected_slot)
+						ImGui.Unindent(10)
+
+						-- Fill the other columns for sub-items
+						ImGui.TableNextColumn()
+						ImGui.TextDisabled(tostring(GearData.Level))
+						ImGui.TableNextColumn()
+						ImGui.TextDisabled(GearData.Type or "")
+					end
+					ImGui.TreePop()
+				else
+					-- Fill columns for closed node
+					ImGui.TableNextColumn()
+					ImGui.TextDisabled("--")
+					ImGui.TableNextColumn()
+					ImGui.TextDisabled("Group")
+				end
+			else
+				-- Single item row
+				local GearData = Items[1]
+				RenderGearSelectable(GearData, current_gear, selected_job, set_name, selected_slot)
+
+				ImGui.TableNextColumn()
+				ImGui.Text(tostring(GearData.Level))
+
+				ImGui.TableNextColumn()
+				ImGui.Text(GearData.Type or "")
+			end
+		end
+
+		ImGui.EndTable()
 	end
 end
 
@@ -129,7 +228,7 @@ return function()
 		RenderSearchBar()
 		ImGui.Separator()
 
-		if ImGui.BeginChild("Items", { 0, 0 }, true) then
+		if ImGui.BeginChild("Items", { 0, 0 }, false) then
 			local FilteredItems = FilterGear.GetFilterGear()
 			if #FilteredItems == 0 then
 				ImGui.TextDisabled("No valid " .. State.SelectedSlot .. " items found in inventory.")
