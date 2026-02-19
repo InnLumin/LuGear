@@ -18,11 +18,15 @@ local function JobSelection()
 
 	ImGui.SetNextItemWidth(90)
 
-	Dropdown("##JobsDropdown", Constants.JobArray, State.SelectedJob, function(selected_option)
-		State.SelectedJob = selected_option
-		State.SelectedSlot = "None"
-		State.SelectedSet = "None"
-	end)
+	Dropdown("##JobsDropdown", {
+		Options = Constants.JobArray,
+		Value = State.SelectedJob,
+		Activated = function(selected_option)
+			State.SelectedJob = selected_option
+			State.SelectedSlot = "None"
+			State.SelectedSet = "None"
+		end,
+	})
 end
 
 ---@return nil
@@ -40,15 +44,19 @@ local function SetSelection()
 		table.insert(SetsName, Name)
 	end
 
-	Dropdown("##SetsDropdown", SetsName, State.SelectedSet, function(selected_option)
-		State.SelectedSet = selected_option
-	end)
+	Dropdown("##SetsDropdown", {
+		Options = SetsName,
+		Value = State.SelectedSet,
+		Activated = function(selected_option)
+			State.SelectedSet = selected_option
+		end,
+	})
 end
 
 local NewSetName = { "" }
 local NewSetLevelSync = { LevelSyncSetByDefault }
 local NewSetSize = { 248, 0 }
-local NewSetPopup, ToggleNewSetPopup = Popup("New Set", "NewSetPopup", NewSetSize)
+local NewSetPopup, ToggleNewSetPopup = Popup("New Set##NewSetPopup", NewSetSize)
 
 -- Renders the button and modal for creating a new gear set
 ---@return nil
@@ -87,7 +95,7 @@ end
 local EditSetName = { "" }
 local EditLevelSyncSet = { false }
 local EditSize = { 248, 0 }
-local DrawEditPopup, ToggleEditPopup = Popup("Edit", "HeaderEdit", EditSize)
+local DrawEditPopup, ToggleEditPopup = Popup("Edit##HeaderEdit", EditSize)
 
 ---@return nil
 -- Renders the options button and modal for editing an existing set
@@ -151,7 +159,7 @@ end
 
 local ExportText = { "" }
 local ExportSize = { 512, 0 }
-local DrawExportPopup, ToggleExport = Popup("Export", "HeaderExport", ExportSize)
+local DrawExportPopup, ToggleExport = Popup("Export##HeaderExport", ExportSize)
 
 ---@return nil
 local function ExportSet()

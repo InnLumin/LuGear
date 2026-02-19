@@ -1,32 +1,37 @@
 local ImGui = require("imgui")
 
-local DropdownStorage = {}
+local Values = {}
+local LastSeenValues = {}
 
----@param label string -- Unique name for the dropdown
----@param options string[] -- A array of the options to give the user
----@param default_value? string | number -- A optional default value to start with
----@param on_callback function<string>
----@return string -- The selected option
-return function(label, options, default_value, on_callback)
-	if DropdownStorage[label] == nil then
-		if type(default_value) == "number" and options[default_value] then
-			DropdownStorage[label] = options[default_value]
-		elseif type(default_value) == "string" then
-			DropdownStorage[label] = default_value
-		else
-			DropdownStorage[label] = options[1]
-		end
+-- -@param label string -- Unique name for the dropdown
+-- -@param options string[] -- A array of the options to give the user
+-- -@param default_value? string | number -- A optional default value to start with
+-- -@param on_callback function<string>
+-- -@return string -- The selected option
+
+---@param label string Unique ID
+---@param config {Options: string[], Value?: string, Default?: string|number, Activated?: function}
+return function(label, config)
+	config = config or {}
+
+	if config.Value ~= nil and config.Value ~= LastSeenValues[label] then
+		Values[label] = config.Value
+		LastSeenValues[label] = config.Value
+	elseif Values[label] == nil then
+		local Start = type(config.default) == "number" and config.Options[config.default] or config.default
+		Values[label] = Start or config.Options[1] or "None"
 	end
 
-	if ImGui.BeginCombo(label, DropdownStorage[label]) then
-		for _, option in ipairs(options) do
-			local IsSelected = DropdownStorage[label] == option
+	local CurrentValue = Values[label]
+	if ImGui.BeginCombo(label, CurrentValue) then
+		for _, option in ipairs(config.Options) do
+			local IsSelected = CurrentValue == option
 
 			if ImGui.Selectable(option, IsSelected) then
-				DropdownStorage[label] = option
+				CurrentValue = option
 
-				if on_callback and type(on_callback) == "function" then
-					on_callback(DropdownStorage[label])
+				if config.Activated and type(config.Activated) == "function" then
+					config.Activated(CurrentValue)
 				end
 			end
 
@@ -38,5 +43,5 @@ return function(label, options, default_value, on_callback)
 		ImGui.EndCombo()
 	end
 
-	return DropdownStorage[label]
+	return CurrentValue
 end

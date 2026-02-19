@@ -3,9 +3,8 @@ local ImGui = require("imgui")
 local Flags = bit.bor(ImGuiWindowFlags_AlwaysAutoResize, ImGuiWindowFlags_NoSavedSettings, ImGuiWindowFlags_NoCollapse)
 
 ---@param title string
----@param id string
 ---@param size table?<number, number>
-return function(title, id, size)
+return function(title, size)
 	local IsOpen = { false }
 
 	---@param render_content function
@@ -15,7 +14,7 @@ return function(title, id, size)
 				ImGui.SetNextWindowSize(size)
 			end
 
-			if ImGui.Begin(title .. "##" .. id .. "PopupWindow", IsOpen, Flags) then
+			if ImGui.Begin(title, IsOpen, Flags) then
 				render_content()
 				ImGui.End()
 			end
