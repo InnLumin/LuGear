@@ -30,6 +30,30 @@ local function RenderSearchBar()
 	end
 end
 
+---Find any elemental code and replace it with it's name
+---@param description string
+---@return string
+local function FormatElements(description)
+	if not description then
+		return ""
+	end
+
+	-- Replaces common elemental icon codes with text versions
+	description = description:gsub("\xEF\x1F", "Fire")
+	description = description:gsub("\xEF\x20", "Ice")
+	description = description:gsub("\xEF\x21", "Wind")
+	description = description:gsub("\xEF\x22", "Earth")
+	description = description:gsub("\xEF\x23", "Lightning")
+	description = description:gsub("\xEF\x24", "Water")
+	description = description:gsub("\xEF\x25", "Light")
+	description = description:gsub("\xEF\x26", "Dark")
+
+	-- Generic catch-all for remaining non-printable control characters
+	description = description:gsub("[%c]", "")
+
+	return description
+end
+
 -- Renders the grouped list of gear items
 ---@param items Item[]
 ---@param current_gear SlotValue[]
@@ -115,7 +139,7 @@ local function RenderGearList(items, current_gear)
 					ImGui.TextDisabled(string.format("Level: %d | Type: %s", Item.Level, Item.Type))
 					ImGui.Separator()
 					ImGui.PushTextWrapPos(300)
-					ImGui.Text(Item.Description)
+					ImGui.Text(FormatElements(Item.Description))
 					if Item.Augments ~= "" then
 						ImGui.Text(Item.Augments)
 					end
