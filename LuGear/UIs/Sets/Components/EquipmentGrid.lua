@@ -8,8 +8,8 @@ local TableFlags = bit.bor(ImGuiTableFlags_NoSavedSettings, ImGuiTableFlags_Bord
 
 local EquipmentSlots = {
 	{ "Main", "Sub", "Ranged", "Ammo" },
-	{ "Head", "Neck", "Ear L", "Ear R" },
-	{ "Body", "Hands", "Ring L", "Ring R" },
+	{ "Head", "Neck", "Ear1", "Ear2" },
+	{ "Body", "Hands", "Ring1", "Ring2" },
 	{ "Back", "Waist", "Legs", "Feet" },
 }
 

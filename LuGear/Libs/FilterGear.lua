@@ -6,15 +6,6 @@ local GetAugments = require("Libs.GetAugments")
 
 local Inventory = MemoryManager:GetInventory()
 
----@class Gear
----@field Name string
----@field Augments string
----@field Description string
----@field Type WeaponType
----@field Index number
----@field Container number
----@field Level number
-
 local SlotBitmasks = {
 	["Main"] = 1,
 	["Sub"] = 2,
@@ -22,12 +13,12 @@ local SlotBitmasks = {
 	["Ammo"] = 8,
 	["Head"] = 16,
 	["Neck"] = 512,
-	["Ear L"] = 6144,
-	["Ear R"] = 6144,
+	["Ear1"] = 6144,
+	["Ear2"] = 6144,
 	["Body"] = 32,
 	["Hands"] = 64,
-	["Ring L"] = 24576,
-	["Ring R"] = 24576,
+	["Ring1"] = 24576,
+	["Ring2"] = 24576,
 	["Back"] = 32768,
 	["Waist"] = 1024,
 	["Legs"] = 128,
@@ -102,7 +93,7 @@ local Types = {
 	[1] = "Item",
 }
 
----@type table<Gear>
+---@type Item[]
 local FilteredGear = {}
 local SeenItems = {}
 
@@ -110,10 +101,10 @@ local Module = {}
 
 -- Resolves a readable item type string from resource data
 ---@param item IItem
----@return string
+---@return ItemType
 local function GetItemTypeString(item)
 	if not item then
-		return "Unknown"
+		return "Item"
 	end
 
 	-- Check for weapon skill (Dagger, Sword, etc.)
@@ -123,17 +114,15 @@ local function GetItemTypeString(item)
 		end
 	end
 
-	return Types[item.Type] or "Equipment"
+	return Types[item.Type] or "Item"
 end
 
 -- Processes a single inventory item and adds it to the filter list if valid
 ---@param item item_t
----@param item_index number
----@param container_id number
 ---@param target_mask number
----@param job_mask number
-local function ProcessInventoryItem(item, item_index, container_id, target_mask, job_mask)
+local function ProcessInventoryItem(item, target_mask)
 	local ItemData = ResourceManager:GetItemById(item.Id)
+	local JobMask = JobBitmasks[State.SelectedJob]
 
 	if not ItemData then
 		return
@@ -145,45 +134,40 @@ local function ProcessInventoryItem(item, item_index, container_id, target_mask,
 	end
 
 	-- Guard Clause: Job mask check
-	if State.SelectedJob ~= "GLOBAL" and job_mask then
-		if bit.band(ItemData.Jobs, job_mask) == 0 then
+	if State.SelectedJob ~= "GLOBAL" and JobMask then
+		if bit.band(ItemData.Jobs, JobMask) == 0 then
 			return
 		end
 	end
 
-	local IsStackable = (ItemData.StackSize and ItemData.StackSize > 1)
-	local AlreadySeen = SeenItems[item.Id] ~= nil
+	local Augments = GetAugments(item, false) -- Might have to check if it's equipped
+	local Id = tostring(ItemData.Id) .. Augments
 
-	-- Add item if it's unique, or stackable and not seen yet
-
-	if not IsStackable or not AlreadySeen then
-		table.insert(FilteredGear, {
-			Name = ItemData.Name[1],
-			Description = ItemData.Description[1] or "",
-			Augments = GetAugments(item, false), -- Might have to check if it's equipped
-			Type = GetItemTypeString(ItemData),
-			Index = item_index,
-			Container = container_id,
-			Level = ItemData.Level,
-		})
+	if SeenItems[Id] then
+		return
 	end
 
-	-- Track stackable items to avoid duplicates
-	if IsStackable then
-		SeenItems[item.Id] = true
-	end
+	table.insert(FilteredGear, {
+		Name = ItemData.Name[1],
+		Description = ItemData.Description[1] or "",
+		Augments = Augments,
+		Type = GetItemTypeString(ItemData),
+		Level = ItemData.Level,
+		Id = Id, -- Id just for if other systems need a unqiue id
+	})
+
+	SeenItems[Id] = true
 end
 
 -- Returns the current filtered gear list
----@return table<Gear>
+---@return Item[]
 function Module.GetFilterGear()
 	return FilteredGear
 end
 
 -- Iterates all containers to update the list of gear for the selected slot
----@param slot_name string
+---@param slot_name SlotName
 function Module.UpdateFilteredGear(slot_name)
-	local JobMask = JobBitmasks[State.SelectedJob]
 	local TargetMask = SlotBitmasks[slot_name]
 
 	if not TargetMask then
@@ -200,7 +184,7 @@ function Module.UpdateFilteredGear(slot_name)
 			local Item = Inventory:GetContainerItem(ContainerID, Index)
 
 			if Item then
-				ProcessInventoryItem(Item, Index, ContainerID, TargetMask, JobMask)
+				ProcessInventoryItem(Item, TargetMask)
 			end
 		end
 	end

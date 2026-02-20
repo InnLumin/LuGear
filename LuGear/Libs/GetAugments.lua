@@ -4,14 +4,13 @@ local ItemData = require("Vendor.itemdata")
 
 return function(item, ritem)
 	if item == nil or ritem == nil then
-		return false, "Error: Both item and ritem userdata must be provided."
+		return ""
 	end
 
-	-- Call the function directly from itemdata which uses the native game call
 	local augments = ItemData.parse(item, ritem).augments
 
 	if not augments or #augments == 0 then
-		return false, "Unaugmented or Augment Parsing Failed."
+		return ""
 	end
 
 	local output = {}

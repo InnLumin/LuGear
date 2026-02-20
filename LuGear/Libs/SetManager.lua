@@ -123,7 +123,7 @@ end
 ---@param set_name string
 ---@param slot_name SlotName
 ---@param item_name string
----@param augments string?
+---@param augments string
 function Module.UpdateSlotForJobSet(job_name, set_name, slot_name, item_name, augments)
 	local Set = Module.GetSet(job_name, set_name)
 	if not Set then
@@ -151,10 +151,7 @@ function Module.UpdateSlotForJobSet(job_name, set_name, slot_name, item_name, au
 		table.remove(SlotGear, FoundIndex)
 	else
 		-- Add the new item
-		local GearObject = { Name = item_name }
-		if augments then
-			GearObject.Augments = augments
-		end
+		local GearObject = { Name = item_name, Augments = augments }
 		table.insert(SlotGear, GearObject)
 	end
 
