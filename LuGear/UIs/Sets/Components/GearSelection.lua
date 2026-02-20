@@ -34,7 +34,7 @@ local function RenderGearList(items, current_gear)
 		ImGuiTableFlags_NoSavedSettings
 	)
 
-	if ImGui.BeginTable("GearSelectionTable8", 3, Flags) then
+	if ImGui.BeginTable("GearSelectionTable", 3, Flags) then
 		-- Column Setup
 		ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 0, 1)
 		ImGui.TableSetupColumn("Lvl", ImGuiTableColumnFlags_WidthFixed, 40, 2)
