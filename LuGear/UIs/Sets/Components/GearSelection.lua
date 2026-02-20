@@ -32,6 +32,17 @@ local function RenderSearchBar()
 	end
 end
 
+local ElementalReplacements = {
+	["\xEF\x1F"] = "Fire",
+	["\xEF\x20"] = "Ice",
+	["\xEF\x21"] = "Wind",
+	["\xEF\x22"] = "Earth",
+	["\xEF\x23"] = "Lightning",
+	["\xEF\x24"] = "Water",
+	["\xEF\x25"] = "Light",
+	["\xEF\x26"] = "Dark",
+}
+
 ---Find any elemental code and replace it with it's name
 ---@param description string
 ---@return string
@@ -40,15 +51,25 @@ local function FormatElements(description)
 		return ""
 	end
 
-	-- Replaces common elemental icon codes with text versions
-	description = description:gsub("\xEF\x1F", "Fire")
-	description = description:gsub("\xEF\x20", "Ice")
-	description = description:gsub("\xEF\x21", "Wind")
-	description = description:gsub("\xEF\x22", "Earth")
-	description = description:gsub("\xEF\x23", "Lightning")
-	description = description:gsub("\xEF\x24", "Water")
-	description = description:gsub("\xEF\x25", "Light")
-	description = description:gsub("\xEF\x26", "Dark")
+	description = description:gsub("%%", "%%%%")
+
+	local replacements = {
+		["\xEF\x1F"] = "Fire",
+		["\xEF\x20"] = "Ice",
+		["\xEF\x21"] = "Wind",
+		["\xEF\x22"] = "Earth",
+		["\xEF\x23"] = "Lightning",
+		["\xEF\x24"] = "Water",
+		["\xEF\x25"] = "Light",
+		["\xEF\x26"] = "Dark",
+	}
+
+	for icon, name in pairs(replacements) do
+		-- We escape the 'icon' by using gsub to put a % in front of the bytes
+		-- This tells the NEXT gsub to treat the icon as a literal string.
+		local safe_icon = icon:gsub("([^%w])", "%%%1")
+		description = description:gsub(safe_icon, name)
+	end
 
 	return description
 end
