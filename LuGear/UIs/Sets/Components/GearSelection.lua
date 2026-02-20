@@ -53,22 +53,9 @@ local function FormatElements(description)
 
 	description = description:gsub("%%", "%%%%")
 
-	local replacements = {
-		["\xEF\x1F"] = "Fire",
-		["\xEF\x20"] = "Ice",
-		["\xEF\x21"] = "Wind",
-		["\xEF\x22"] = "Earth",
-		["\xEF\x23"] = "Lightning",
-		["\xEF\x24"] = "Water",
-		["\xEF\x25"] = "Light",
-		["\xEF\x26"] = "Dark",
-	}
-
-	for icon, name in pairs(replacements) do
-		-- We escape the 'icon' by using gsub to put a % in front of the bytes
-		-- This tells the NEXT gsub to treat the icon as a literal string.
-		local safe_icon = icon:gsub("([^%w])", "%%%1")
-		description = description:gsub(safe_icon, name)
+	for Icon, Name in pairs(ElementalReplacements) do
+		local SafeIcon = Icon:gsub("([^%w])", "%%%1")
+		description = description:gsub(SafeIcon, Name)
 	end
 
 	return description
