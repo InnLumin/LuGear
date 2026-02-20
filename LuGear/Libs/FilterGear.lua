@@ -25,6 +25,23 @@ local SlotBitmasks = {
 	["Feet"] = 256,
 }
 
+local TypeBitmasks = {
+	[1] = "Main",
+	[2] = "Sub",
+	[4] = "Ranged",
+	[8] = "Ammo",
+	[16] = "Head",
+	[512] = "Neck",
+	[6144] = "Earring",
+	[32] = "Body",
+	[64] = "Hands",
+	[24576] = "Ring",
+	[32768] = "Back",
+	[1024] = "Waist",
+	[128] = "Legs",
+	[256] = "Feet",
+}
+
 local SearchContainers = {
 	Inventory = 0,
 	--MogSafe = 1,
@@ -87,12 +104,6 @@ local Skills = {
 	[27] = "Throwing",
 }
 
-local Types = {
-	[4] = "Shield",
-	[5] = "Armor",
-	[1] = "Item",
-}
-
 ---@type Item[]
 local FilteredGear = {}
 local SeenItems = {}
@@ -108,13 +119,29 @@ local function GetItemTypeString(item)
 	end
 
 	-- Check for weapon skill (Dagger, Sword, etc.)
-	if item.Skill and item.Skill > 0 then
-		if Skills[item.Skill] then
-			return Skills[item.Skill]
-		end
+	if item.Skill and item.Skill > 0 and Skills[item.Skill] then
+		return Skills[item.Skill]
 	end
 
-	return Types[item.Type] or "Item"
+	if bit.band(item.Slots, 2) ~= 0 and item.Type == 5 then
+		return "Shield"
+	end
+
+	local Type = TypeBitmasks[item.Slots]
+	if Type then
+		return Type
+	end
+
+	if item.Type == 5 then
+		for mask, name in pairs(TypeBitmasks) do
+			if bit.band(item.Slots, mask) ~= 0 then
+				return name
+			end
+		end
+		return "Armor"
+	end
+
+	return "Item"
 end
 
 -- Processes a single inventory item and adds it to the filter list if valid
@@ -134,10 +161,8 @@ local function ProcessInventoryItem(item, target_mask)
 	end
 
 	-- Guard Clause: Job mask check
-	if State.SelectedJob ~= "GLOBAL" and JobMask then
-		if bit.band(ItemData.Jobs, JobMask) == 0 then
-			return
-		end
+	if State.SelectedJob ~= "GLOBAL" and JobMask and bit.band(ItemData.Jobs, JobMask) == 0 then
+		return
 	end
 
 	local Augments = GetAugments(item, false) -- Might have to check if it's equipped

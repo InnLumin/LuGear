@@ -25,45 +25,115 @@ end
 ---@param items Item[]
 ---@param current_gear SlotValue[]
 local function RenderGearList(items, current_gear)
-	local Filter = SearchText.Text[1]:lower()
+	local Flags = bit.bor(
+		ImGuiTableFlags_Borders,
+		ImGuiTableFlags_RowBg,
+		ImGuiTableFlags_ScrollY,
+		ImGuiTableFlags_Sortable,
+		ImGuiTableFlags_Resizable,
+		ImGuiTableFlags_NoSavedSettings
+	)
 
-	for _, Item in ipairs(items) do
-		if Filter == "" or Item.Name:lower():find(Filter, 1, true) == 1 then
-			local IsSelected = false
+	if ImGui.BeginTable("GearSelectionTable8", 3, Flags) then
+		-- Column Setup
+		ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 0, 1)
+		ImGui.TableSetupColumn("Lvl", ImGuiTableColumnFlags_WidthFixed, 40, 2)
+		ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 120, 3)
+		ImGui.TableHeadersRow()
 
-			-- Is selected logic
-			for _, GearObject in ipairs(current_gear) do
-				if GearObject.Name == Item.Name and GearObject.Augments == Item.Augments then
-					IsSelected = true
-					break
+		-- Sort logic
+		local SortSpecs = ImGui.TableGetSortSpecs()
+		if SortSpecs and SortSpecs.SpecsDirty then
+			table.sort(items, function(a, b)
+				local Specs = SortSpecs.Specs
+				local IsDescending = Specs.SortDirection == ImGuiSortDirection_Descending
+				local AttributeA, AttributeB
+
+				-- ColumnUserID 2 is now mapped to "Lvl"
+				if Specs.ColumnUserID == 2 then
+					AttributeA, AttributeB = a.Level, b.Level
+				elseif Specs.ColumnUserID == 3 then -- Type
+					AttributeA, AttributeB = a.Type:lower(), b.Type:lower()
+				else -- Fallback to name
+					AttributeA, AttributeB = a.Name:lower(), b.Name:lower()
 				end
-			end
 
-			if ImGui.Selectable(Item.Name .. "##" .. Item.Id, IsSelected) then
-				SetManager.UpdateSlotForJobSet(
-					State.SelectedJob,
-					State.SelectedSet,
-					State.SelectedSlot,
-					Item.Name,
-					Item.Augments
-				)
-			end
+				if AttributeA == AttributeB then
+					if Specs.ColumnUserID == 1 then
+						return false
+					end -- Already sorting by name and they are equal
 
-			-- Tooltip
-			if ImGui.IsItemHovered() then
-				ImGui.BeginTooltip()
-				ImGui.TextColored({ 0.4, 0.7, 1.0, 1.0 }, Item.Name)
-				ImGui.TextDisabled(string.format("Level: %d | Type: %s", Item.Level, Item.Type))
-				ImGui.Separator()
-				ImGui.PushTextWrapPos(300)
-				ImGui.Text(Item.Description)
-				if Item.Augments ~= "" then
-					ImGui.Text(Item.Augments)
+					AttributeA, AttributeB = a.Name:lower(), b.Name:lower()
+
+					if AttributeA == AttributeB then
+						return false
+					end -- If names are also equal
 				end
-				ImGui.PopTextWrapPos()
-				ImGui.EndTooltip()
+
+				if IsDescending then
+					return AttributeA > AttributeB
+				else
+					return AttributeA < AttributeB
+				end
+			end)
+			SortSpecs.SpecsDirty = false
+		end
+
+		-- Filter and render
+		local Filter = SearchText.Text[1]:lower()
+
+		for _, Item in ipairs(items) do
+			if Filter == "" or Item.Name:lower():find(Filter, 1, true) == 1 then
+				ImGui.TableNextRow()
+				ImGui.TableNextColumn()
+
+				-- Is selected logic
+				local IsSelected = false
+				for _, GearObject in ipairs(current_gear) do
+					local NameMatch = (GearObject.Name == Item.Name)
+					local AugmentMatch = (GearObject.Augments or "" == Item.Augments or "")
+					if NameMatch and AugmentMatch then
+						IsSelected = true
+						break
+					end
+				end
+
+				if ImGui.Selectable(Item.Name .. "##" .. Item.Id, IsSelected, ImGuiSelectableFlags_SpanAllColumns) then
+					SetManager.UpdateSlotForJobSet(
+						State.SelectedJob,
+						State.SelectedSet,
+						State.SelectedSlot,
+						Item.Name,
+						Item.Augments
+					)
+				end
+
+				-- Tooltip
+				if ImGui.IsItemHovered() then
+					ImGui.BeginTooltip()
+					ImGui.TextColored({ 0.4, 0.7, 1.0, 1.0 }, Item.Name)
+					ImGui.TextDisabled(string.format("Level: %d | Type: %s", Item.Level, Item.Type))
+					ImGui.Separator()
+					ImGui.PushTextWrapPos(300)
+					ImGui.Text(Item.Description)
+					if Item.Augments ~= "" then
+						ImGui.Text(Item.Augments)
+					end
+					ImGui.PopTextWrapPos()
+					ImGui.EndTooltip()
+				end
+
+				-- Level Column
+				ImGui.TableNextColumn()
+				ImGui.Text(tostring(Item.Level))
+
+				-- Type Column
+				ImGui.TableNextColumn()
+				ImGui.Text(Item.Type)
 			end
 		end
+
+		ImGui.EndTable()
 	end
 end
 
