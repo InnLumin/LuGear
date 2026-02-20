@@ -101,7 +101,7 @@ function Module.ExportJobSets()
 					-- Level Sync: Export all items, preserving augments
 					local GearList = {}
 					for _, GearObject in ipairs(GearTable) do
-						if GearObject.Augments then
+						if GearObject.Augments and GearObject.Augments ~= "" then
 							-- Has augments, keep as object
 							local formattedAugments = FormatAugments(GearObject.Augments)
 							table.insert(
@@ -117,7 +117,7 @@ function Module.ExportJobSets()
 				else
 					-- Non-Level Sync: Export only first item
 					local FirstGear = GearTable[1]
-					if FirstGear.Augments then
+					if FirstGear.Augments and FirstGear.Augments ~= "" then
 						-- Has augments, keep as object
 						local formattedAugments = FormatAugments(FirstGear.Augments)
 						table.insert(
