@@ -2,6 +2,8 @@ local ImGui = require("imgui")
 local State = require("State")
 local SetManager = require("Libs.SetManager")
 local FilterGear = require("Libs.FilterGear")
+local Theme = require("Libs.Theme")
+local Color = require("Libs.Color")
 
 local SearchText = {
 	Text = { "" },
@@ -47,9 +49,6 @@ local function FormatElements(description)
 	description = description:gsub("\xEF\x24", "Water")
 	description = description:gsub("\xEF\x25", "Light")
 	description = description:gsub("\xEF\x26", "Dark")
-
-	-- Generic catch-all for remaining non-printable control characters
-	description = description:gsub("[%c]", "")
 
 	return description
 end
@@ -108,6 +107,9 @@ local function RenderGearList(items, current_gear)
 
 		for _, Item in ipairs(items) do
 			if Filter == "" or Item.Name:lower():find(Filter, 1, true) == 1 then
+				local FinalColor = Theme.SelectedTheme.Colors.Active
+				local PushColorAmount = 0
+
 				ImGui.TableNextRow()
 				ImGui.TableNextColumn()
 
@@ -122,7 +124,21 @@ local function RenderGearList(items, current_gear)
 					end
 				end
 
-				if ImGui.Selectable(Item.Name .. "##" .. Item.Id, IsSelected, ImGuiSelectableFlags_SpanAllColumns) then
+				ImGui.PushStyleColor(ImGuiCol_Header, Theme.SelectedTheme.Colors.Inactive)
+				PushColorAmount = PushColorAmount + 1
+
+				ImGui.PushStyleColor(ImGuiCol_HeaderHovered, Theme.SelectedTheme.Colors.Hover)
+				PushColorAmount = PushColorAmount + 1
+
+				ImGui.PushStyleColor(ImGuiCol_HeaderActive, Color.Saturate(Theme.SelectedTheme.Colors.Hover, 0.2))
+				PushColorAmount = PushColorAmount + 1
+
+				if IsSelected then
+					ImGui.PushStyleColor(ImGuiCol_Text, Theme.SelectedTheme.Colors.Active)
+					PushColorAmount = PushColorAmount + 1
+				end
+
+				if ImGui.Selectable(Item.Name .. "##" .. Item.Id, false, ImGuiSelectableFlags_SpanAllColumns) then
 					SetManager.UpdateSlotForJobSet(
 						State.SelectedJob,
 						State.SelectedSet,
@@ -131,6 +147,8 @@ local function RenderGearList(items, current_gear)
 						Item.Augments
 					)
 				end
+
+				ImGui.PopStyleColor(PushColorAmount)
 
 				-- Tooltip
 				if ImGui.IsItemHovered() then
