@@ -8,6 +8,15 @@ local SearchText = {
 	Size = 256,
 }
 
+local TableFlags = bit.bor(
+	ImGuiTableFlags_Borders,
+	ImGuiTableFlags_RowBg,
+	ImGuiTableFlags_ScrollY,
+	ImGuiTableFlags_Sortable,
+	ImGuiTableFlags_Resizable,
+	ImGuiTableFlags_NoSavedSettings
+)
+
 -- Renders the gear search input and clear button
 ---@return nil
 local function RenderSearchBar()
@@ -25,16 +34,7 @@ end
 ---@param items Item[]
 ---@param current_gear SlotValue[]
 local function RenderGearList(items, current_gear)
-	local Flags = bit.bor(
-		ImGuiTableFlags_Borders,
-		ImGuiTableFlags_RowBg,
-		ImGuiTableFlags_ScrollY,
-		ImGuiTableFlags_Sortable,
-		ImGuiTableFlags_Resizable,
-		ImGuiTableFlags_NoSavedSettings
-	)
-
-	if ImGui.BeginTable("GearSelectionTable", 3, Flags) then
+	if ImGui.BeginTable("GearSelectionTable", 3, TableFlags) then
 		-- Column Setup
 		ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 0, 1)
 		ImGui.TableSetupColumn("Lvl", ImGuiTableColumnFlags_WidthFixed, 40, 2)
@@ -151,21 +151,17 @@ return function()
 		RenderSearchBar()
 		ImGui.Separator()
 
-		if ImGui.BeginChild("Items", { 0, 0 }, false) then
-			local FilteredItems = FilterGear.GetFilterGear()
-			if #FilteredItems == 0 then
-				ImGui.TextDisabled("No valid " .. State.SelectedSlot .. " items found in inventory.")
-				ImGui.EndChild()
-				return
-			end
-
-			local CurrentSet = SetManager.GetSet(State.SelectedJob, State.SelectedSet) or { Slots = {} }
-			local SlotItems = CurrentSet.Slots[State.SelectedSlot] or {}
-
-			RenderGearList(FilteredItems, SlotItems)
-
+		local FilteredItems = FilterGear.GetFilterGear()
+		if #FilteredItems == 0 then
+			ImGui.TextDisabled("No valid " .. State.SelectedSlot .. " items found in inventory.")
 			ImGui.EndChild()
+			return
 		end
+
+		local CurrentSet = SetManager.GetSet(State.SelectedJob, State.SelectedSet) or { Slots = {} }
+		local SlotItems = CurrentSet.Slots[State.SelectedSlot] or {}
+
+		RenderGearList(FilteredItems, SlotItems)
 
 		ImGui.EndChild()
 	end
