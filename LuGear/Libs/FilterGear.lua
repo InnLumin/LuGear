@@ -144,6 +144,35 @@ local function GetItemTypeString(item)
 	return "Item"
 end
 
+local ElementalReplacements = {
+	["\xEF\x1F"] = "Fire",
+	["\xEF\x20"] = "Ice",
+	["\xEF\x21"] = "Wind",
+	["\xEF\x22"] = "Earth",
+	["\xEF\x23"] = "Lightning",
+	["\xEF\x24"] = "Water",
+	["\xEF\x25"] = "Light",
+	["\xEF\x26"] = "Dark",
+}
+
+---Fixes problems with the description like elemental codes
+---@param description string
+---@return string
+local function FixDescription(description)
+	if not description then
+		return ""
+	end
+
+	description = description:gsub("%%", "%%%%")
+
+	for Icon, Name in pairs(ElementalReplacements) do
+		local SafeIcon = Icon:gsub("([^%w])", "%%%1")
+		description = description:gsub(SafeIcon, Name)
+	end
+
+	return description
+end
+
 -- Processes a single inventory item and adds it to the filter list if valid
 ---@param item item_t
 ---@param target_mask number
@@ -174,7 +203,7 @@ local function ProcessInventoryItem(item, target_mask)
 
 	table.insert(FilteredGear, {
 		Name = ItemData.Name[1],
-		Description = ItemData.Description[1] or "",
+		Description = FixDescription(ItemData.Description[1]) or "",
 		Augments = Augments,
 		Type = GetItemTypeString(ItemData),
 		Level = ItemData.Level,

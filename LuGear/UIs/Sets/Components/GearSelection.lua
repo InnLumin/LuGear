@@ -5,11 +5,6 @@ local FilterGear = require("Libs.FilterGear")
 local Theme = require("Libs.Theme")
 local Color = require("Libs.Color")
 
-local SearchText = {
-	Text = { "" },
-	Size = 256,
-}
-
 local TableFlags = bit.bor(
 	ImGuiTableFlags_Borders,
 	ImGuiTableFlags_RowBg,
@@ -18,6 +13,13 @@ local TableFlags = bit.bor(
 	ImGuiTableFlags_Resizable,
 	ImGuiTableFlags_NoSavedSettings
 )
+
+local SearchText = {
+	Text = { "" },
+	Size = 256,
+}
+
+local LastSlot = State.SelectedSlot
 
 -- Renders the gear search input and clear button
 ---@return nil
@@ -30,35 +32,6 @@ local function RenderSearchBar()
 			SearchText.Text[1] = ""
 		end
 	end
-end
-
-local ElementalReplacements = {
-	["\xEF\x1F"] = "Fire",
-	["\xEF\x20"] = "Ice",
-	["\xEF\x21"] = "Wind",
-	["\xEF\x22"] = "Earth",
-	["\xEF\x23"] = "Lightning",
-	["\xEF\x24"] = "Water",
-	["\xEF\x25"] = "Light",
-	["\xEF\x26"] = "Dark",
-}
-
----Find any elemental code and replace it with it's name
----@param description string
----@return string
-local function FormatElements(description)
-	if not description then
-		return ""
-	end
-
-	description = description:gsub("%%", "%%%%")
-
-	for Icon, Name in pairs(ElementalReplacements) do
-		local SafeIcon = Icon:gsub("([^%w])", "%%%1")
-		description = description:gsub(SafeIcon, Name)
-	end
-
-	return description
 end
 
 -- Renders the grouped list of gear items
@@ -74,6 +47,13 @@ local function RenderGearList(items, current_gear)
 
 		-- Sort logic
 		local SortSpecs = ImGui.TableGetSortSpecs()
+		local SlotChange = (State.SelectedSlot ~= LastSlot)
+		LastSlot = State.SelectedSlot
+
+		if SlotChange then
+			SortSpecs.SpecsDirty = true
+		end
+
 		if SortSpecs and SortSpecs.SpecsDirty then
 			table.sort(items, function(a, b)
 				local Specs = SortSpecs.Specs
@@ -165,7 +145,7 @@ local function RenderGearList(items, current_gear)
 					ImGui.TextDisabled(string.format("Level: %d | Type: %s", Item.Level, Item.Type))
 					ImGui.Separator()
 					ImGui.PushTextWrapPos(300)
-					ImGui.Text(FormatElements(Item.Description))
+					ImGui.Text(Item.Description)
 					if Item.Augments ~= "" then
 						ImGui.Text(Item.Augments)
 					end
