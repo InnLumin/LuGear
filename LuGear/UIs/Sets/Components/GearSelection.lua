@@ -50,7 +50,7 @@ local function RenderGearList(items, current_gear)
 		local SlotChange = (State.SelectedSlot ~= LastSlot)
 		LastSlot = State.SelectedSlot
 
-		if SlotChange then
+		if SlotChange and SortSpecs then
 			SortSpecs.SpecsDirty = true
 		end
 
@@ -95,9 +95,6 @@ local function RenderGearList(items, current_gear)
 
 		for _, Item in ipairs(items) do
 			if Filter == "" or Item.Name:lower():find(Filter, 1, true) == 1 then
-				local FinalColor = Theme.SelectedTheme.Colors.Active
-				local PushColorAmount = 0
-
 				ImGui.TableNextRow()
 				ImGui.TableNextColumn()
 
@@ -113,17 +110,11 @@ local function RenderGearList(items, current_gear)
 				end
 
 				ImGui.PushStyleColor(ImGuiCol_Header, Theme.SelectedTheme.Colors.Inactive)
-				PushColorAmount = PushColorAmount + 1
-
 				ImGui.PushStyleColor(ImGuiCol_HeaderHovered, Theme.SelectedTheme.Colors.Hover)
-				PushColorAmount = PushColorAmount + 1
-
 				ImGui.PushStyleColor(ImGuiCol_HeaderActive, Color.Saturate(Theme.SelectedTheme.Colors.Hover, 0.2))
-				PushColorAmount = PushColorAmount + 1
 
 				if IsSelected then
 					ImGui.PushStyleColor(ImGuiCol_Text, Theme.SelectedTheme.Colors.Active)
-					PushColorAmount = PushColorAmount + 1
 				end
 
 				if ImGui.Selectable(Item.Name .. "##" .. Item.Id, false, ImGuiSelectableFlags_SpanAllColumns) then
@@ -136,7 +127,7 @@ local function RenderGearList(items, current_gear)
 					)
 				end
 
-				ImGui.PopStyleColor(PushColorAmount)
+				ImGui.PopStyleColor(IsSelected and 4 or 3)
 
 				-- Tooltip
 				if ImGui.IsItemHovered() then

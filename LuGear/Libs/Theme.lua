@@ -11,12 +11,4 @@ Module.Default = {
 
 Module.SelectedTheme = Module.Default
 
-function Module.GetColor(state)
-	local Color = Module.SelectedTheme.Colors[state]
-	if Color then
-		return table.unpack(color)
-	end
-	return 1, 1, 1, 1 -- Fallback to white if state is missing
-end
-
 return Module
