@@ -20,7 +20,6 @@ ashita.events.register("command", "lugear_command_callback", function(args)
 
 	if LowerCommand == "/lugear" or LowerCommand == "/lg" then
 		IsOpen[1] = not IsOpen[1]
-		State.SaveSettings()
 	end
 end)
 
