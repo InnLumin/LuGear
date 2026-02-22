@@ -49,6 +49,9 @@ local function SetSelection()
 		Value = State.SelectedSet,
 		Activated = function(selected_option)
 			State.SelectedSet = selected_option
+			if State.SelectedSlot ~= "" or State.SelectedSlot ~= "None" then
+				FilterGear.UpdateFilteredGear(State.SelectedSlot)
+			end
 		end,
 	})
 end

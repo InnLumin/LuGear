@@ -3,6 +3,7 @@ local MemoryManager = AshitaCore:GetMemoryManager()
 
 local State = require("State")
 local GetAugments = require("Libs.GetAugments")
+local SetManager = require("Libs.SetManager")
 
 local Inventory = MemoryManager:GetInventory()
 
@@ -208,6 +209,39 @@ local function ProcessInventoryItem(item, target_mask)
 		Type = GetItemTypeString(ItemData),
 		Level = ItemData.Level,
 		Id = Id, -- Id just for if other systems need a unqiue id
+		GhostItem = false,
+	})
+
+	SeenItems[Id] = true
+end
+
+---Process a single gear item from the set manager
+---@param gear SlotValue
+local function ProcessSetGear(gear)
+	if not gear or not gear.Name or gear.Name == "" then
+		return
+	end
+
+	local ItemData = ResourceManager:GetItemByName(gear.Name, 0)
+	if not ItemData then
+		return
+	end
+
+	local Augments = gear.Augments or ""
+	local Id = tostring(ItemData.Id) .. Augments
+
+	if SeenItems[Id] then
+		return
+	end
+
+	table.insert(FilteredGear, {
+		Name = gear.Name,
+		Description = FixDescription(ItemData.Description[1] or ""),
+		Augments = Augments,
+		Type = GetItemTypeString(ItemData),
+		Level = ItemData.Level,
+		Id = Id,
+		GhostItem = true,
 	})
 
 	SeenItems[Id] = true
@@ -231,15 +265,26 @@ function Module.UpdateFilteredGear(slot_name)
 	FilteredGear = {}
 	SeenItems = {}
 
+	-- Scan inventory
 	for _, ContainerID in pairs(SearchContainers) do
 		local ContainerMax = Inventory:GetContainerCountMax(ContainerID)
 
-		for Index = 1, ContainerMax do
+		for Index = 0, ContainerMax do
 			local Item = Inventory:GetContainerItem(ContainerID, Index)
 
 			if Item then
 				ProcessInventoryItem(Item, TargetMask)
 			end
+		end
+	end
+
+	-- Scan set manager
+	local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
+	local SelectedSlot = Set and Set.Slots[slot_name] or nil
+
+	if SelectedSlot then
+		for _, Gear in ipairs(SelectedSlot) do
+			ProcessSetGear(Gear)
 		end
 	end
 end

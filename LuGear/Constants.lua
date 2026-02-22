@@ -15,6 +15,7 @@
 ---@field Type ItemType
 ---@field Level number
 ---@field Id string
+---@field GhostItem boolean
 
 ---@type Sets
 -- local Sets = {

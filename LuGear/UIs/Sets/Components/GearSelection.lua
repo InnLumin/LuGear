@@ -38,6 +38,8 @@ end
 ---@param items Item[]
 ---@param current_gear SlotValue[]
 local function RenderGearList(items, current_gear)
+	local ThemeColors = Theme.SelectedTheme.Colors
+
 	if ImGui.BeginTable("GearSelectionTable", 3, TableFlags) then
 		-- Column Setup
 		ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch, 0, 1)
@@ -98,6 +100,8 @@ local function RenderGearList(items, current_gear)
 				ImGui.TableNextRow()
 				ImGui.TableNextColumn()
 
+				local IsGhostItem = Item.GhostItem == true
+
 				-- Is selected logic
 				local IsSelected = false
 				for _, GearObject in ipairs(current_gear) do
@@ -109,12 +113,14 @@ local function RenderGearList(items, current_gear)
 					end
 				end
 
-				ImGui.PushStyleColor(ImGuiCol_Header, Theme.SelectedTheme.Colors.Inactive)
-				ImGui.PushStyleColor(ImGuiCol_HeaderHovered, Theme.SelectedTheme.Colors.Hover)
-				ImGui.PushStyleColor(ImGuiCol_HeaderActive, Color.Saturate(Theme.SelectedTheme.Colors.Hover, 0.2))
+				ImGui.PushStyleColor(ImGuiCol_Header, ThemeColors.Inactive)
+				ImGui.PushStyleColor(ImGuiCol_HeaderHovered, ThemeColors.Hover)
+				ImGui.PushStyleColor(ImGuiCol_HeaderActive, Color.Saturate(ThemeColors.Hover, 0.2))
 
-				if IsSelected then
-					ImGui.PushStyleColor(ImGuiCol_Text, Theme.SelectedTheme.Colors.Active)
+				if IsGhostItem then
+					ImGui.PushStyleColor(ImGuiCol_Text, ThemeColors.Disabled)
+				elseif IsSelected then
+					ImGui.PushStyleColor(ImGuiCol_Text, ThemeColors.Active)
 				end
 
 				if ImGui.Selectable(Item.Name .. "##" .. Item.Id, false, ImGuiSelectableFlags_SpanAllColumns) then
@@ -125,14 +131,22 @@ local function RenderGearList(items, current_gear)
 						Item.Name,
 						Item.Augments
 					)
+
+					if IsGhostItem then
+						FilterGear.UpdateFilteredGear(State.SelectedSlot)
+					end
 				end
 
-				ImGui.PopStyleColor(IsSelected and 4 or 3)
+				if IsSelected or IsGhostItem then
+					ImGui.PopStyleColor(4)
+				else
+					ImGui.PopStyleColor(3)
+				end
 
 				-- Tooltip
 				if ImGui.IsItemHovered() then
 					ImGui.BeginTooltip()
-					ImGui.TextColored({ 0.4, 0.7, 1.0, 1.0 }, Item.Name)
+					ImGui.Text(Item.Name)
 					ImGui.TextDisabled(string.format("Level: %d | Type: %s", Item.Level, Item.Type))
 					ImGui.Separator()
 					ImGui.PushTextWrapPos(300)
@@ -141,6 +155,14 @@ local function RenderGearList(items, current_gear)
 						ImGui.Text(Item.Augments)
 					end
 					ImGui.PopTextWrapPos()
+					if Item.GhostItem then
+						ImGui.Separator()
+						ImGui.TextColored(ThemeColors.Disabled, "This item isn't found in a searchable location.")
+						ImGui.TextColored(
+							ThemeColors.Disabled,
+							"Selecting it now will permanently remove it from your set."
+						)
+					end
 					ImGui.EndTooltip()
 				end
 
