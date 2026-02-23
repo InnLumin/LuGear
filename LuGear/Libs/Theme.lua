@@ -1,6 +1,5 @@
 local Module = {}
 
--- Default red: 0.83, 0.33, 0.28, 0.78
 Module.Default = {
 	Colors = {
 		Inactive = { 0.25, 0.25, 0.25, 0.60 },

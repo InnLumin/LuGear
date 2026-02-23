@@ -1,5 +1,4 @@
 local Settings = require("settings")
-local Constants = require("Constants")
 local JobManager = require("Libs.JobManager")
 
 ---@class UserSettings

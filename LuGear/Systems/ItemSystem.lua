@@ -1,9 +1,9 @@
 local ResourceManager = AshitaCore:GetResourceManager()
 local MemoryManager = AshitaCore:GetMemoryManager()
 
-local State = require("State")
+local State = require("Core.State")
 local GetAugments = require("Libs.GetAugments")
-local SetManager = require("Libs.SetManager")
+local SetSystem = require("Systems.SetSystem")
 
 local Inventory = MemoryManager:GetInventory()
 
@@ -249,7 +249,7 @@ end
 
 -- Returns the current filtered gear list
 ---@return Item[]
-function Module.GetFilterGear()
+function Module.GetItemSystem()
 	return FilteredGear
 end
 
@@ -279,7 +279,7 @@ function Module.UpdateFilteredGear(slot_name)
 	end
 
 	-- Scan set manager
-	local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
+	local Set = SetSystem.GetSet(State.SelectedJob, State.SelectedSet)
 	local SelectedSlot = Set and Set.Slots[slot_name] or nil
 
 	if SelectedSlot then

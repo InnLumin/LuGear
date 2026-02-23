@@ -1,5 +1,5 @@
 local ImGui = require("imgui")
-local Header = require("Components.Header")
+local Header = require("UIs.Components.Header")
 local EquipmentGrid = require("UIs.Sets.Components.EquipmentGrid")
 local GearSelection = require("UIs.Sets.Components.GearSelection")
 

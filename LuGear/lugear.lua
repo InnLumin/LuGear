@@ -5,7 +5,7 @@ addon.desc = "A helper addon to help make, making luashitacast profiles easier."
 addon.link = "https://github.com/InnLumin/LuGear"
 
 local ImGui = require("imgui")
-local State = require("State")
+local State = require("Core.State")
 local Sets = require("UIs.Sets.Sets")
 
 local WindowFlags = bit.bor(ImGuiWindowFlags_NoSavedSettings, ImGuiWindowFlags_NoResize)

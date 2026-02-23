@@ -1,6 +1,6 @@
 local ResourceManager = AshitaCore:GetResourceManager()
 
-local State = require("State")
+local State = require("Core.State")
 
 local Module = {}
 

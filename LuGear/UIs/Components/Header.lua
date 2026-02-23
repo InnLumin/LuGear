@@ -1,11 +1,11 @@
 local ImGui = require("imgui")
-local State = require("State")
+local State = require("Core.State")
 local Constants = require("Constants")
-local FilterGear = require("Libs.FilterGear")
-local SetManager = require("Libs.SetManager")
-local Exporter = require("Libs.Exporter")
-local Popup = require("Components.Popup")
-local Dropdown = require("Components.Dropdown")
+local ItemSystem = require("Systems.ItemSystem")
+local SetSystem = require("Systems.SetSystem")
+local ExportSystem = require("Systems.ExportSystem")
+local Popup = require("UIs.Components.Popup")
+local Dropdown = require("UIs.Components.Dropdown")
 
 local LevelSyncSetByDefault = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
 
@@ -37,7 +37,7 @@ local function SetSelection()
 	ImGui.SameLine()
 	ImGui.SetNextItemWidth(120)
 
-	local Sets = SetManager.GetSets(State.SelectedJob)
+	local Sets = SetSystem.GetSets(State.SelectedJob)
 	local SetsName = {}
 
 	for Name, _ in pairs(Sets or {}) do
@@ -50,7 +50,7 @@ local function SetSelection()
 		Activated = function(selected_option)
 			State.SelectedSet = selected_option
 			if State.SelectedSlot ~= "" or State.SelectedSlot ~= "None" then
-				FilterGear.UpdateFilteredGear(State.SelectedSlot)
+				ItemSystem.UpdateFilteredGear(State.SelectedSlot)
 			end
 		end,
 	})
@@ -79,7 +79,7 @@ local function NewSet()
 			local Name = NewSetName[1]
 
 			if Name ~= "" then
-				SetManager.AddSet(State.SelectedJob, Name, NewSetLevelSync[1])
+				SetSystem.AddSet(State.SelectedJob, Name, NewSetLevelSync[1])
 
 				NewSetName[1] = ""
 				NewSetLevelSync[1] = LevelSyncSetByDefault
@@ -110,7 +110,7 @@ local function EditSet()
 	if ImGui.Button("Edit") then
 		EditSetName[1] = State.SelectedSet
 
-		local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
+		local Set = SetSystem.GetSet(State.SelectedJob, State.SelectedSet)
 		local IsLevelSyncSet = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
 
 		if Set then
@@ -134,12 +134,12 @@ local function EditSet()
 			local OldName = State.SelectedSet
 			local NewName = EditSetName[1]
 
-			SetManager.RenameSet(State.SelectedJob, OldName, NewName)
+			SetSystem.RenameSet(State.SelectedJob, OldName, NewName)
 
-			local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
+			local Set = SetSystem.GetSet(State.SelectedJob, State.SelectedSet)
 
 			if Set and Set.LevelSyncSet ~= EditLevelSyncSet[1] then
-				SetManager.ToggleLevelSync(State.SelectedJob, State.SelectedSet)
+				SetSystem.ToggleLevelSync(State.SelectedJob, State.SelectedSet)
 			end
 
 			ToggleEditPopup()
@@ -149,7 +149,7 @@ local function EditSet()
 
 		-- Delete
 		if ImGui.Button("Delete Set", { 120, 0 }) then
-			SetManager.DeleteSet(State.SelectedJob, State.SelectedSet)
+			SetSystem.DeleteSet(State.SelectedJob, State.SelectedSet)
 			ToggleEditPopup()
 		end
 
@@ -171,7 +171,7 @@ local function ExportSet()
 	end
 
 	if ImGui.Button("Export" .. "##" .. "HeaderExportBtn") then
-		ExportText[1] = Exporter.ExportJobSets()
+		ExportText[1] = ExportSystem.ExportJobSets()
 		ToggleExport()
 	end
 

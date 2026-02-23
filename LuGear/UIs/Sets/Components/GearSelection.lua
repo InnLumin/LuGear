@@ -1,7 +1,7 @@
 local ImGui = require("imgui")
-local State = require("State")
-local SetManager = require("Libs.SetManager")
-local FilterGear = require("Libs.FilterGear")
+local State = require("Core.State")
+local SetSystem = require("Systems.SetSystem")
+local ItemSystem = require("Systems.ItemSystem")
 local Theme = require("Libs.Theme")
 local Color = require("Libs.Color")
 
@@ -115,7 +115,7 @@ local function RenderGearList(items, current_gear)
 
 				ImGui.PushStyleColor(ImGuiCol_Header, ThemeColors.Inactive)
 				ImGui.PushStyleColor(ImGuiCol_HeaderHovered, ThemeColors.Hover)
-				ImGui.PushStyleColor(ImGuiCol_HeaderActive, Color.Saturate(ThemeColors.Hover, 0.2))
+				ImGui.PushStyleColor(ImGuiCol_HeaderActive, Color.Lighten(ThemeColors.Hover, 0.2))
 
 				if IsGhostItem then
 					ImGui.PushStyleColor(ImGuiCol_Text, ThemeColors.Disabled)
@@ -124,9 +124,9 @@ local function RenderGearList(items, current_gear)
 				end
 
 				if ImGui.Selectable(Item.Name .. "##" .. Item.Id, false, ImGuiSelectableFlags_SpanAllColumns) then
-					SetManager.UpdateSlot(Item.Name, Item.Augments)
+					SetSystem.UpdateSlot(Item.Name, Item.Augments)
 					if IsGhostItem then
-						FilterGear.UpdateFilteredGear(State.SelectedSlot)
+						ItemSystem.UpdateFilteredGear(State.SelectedSlot)
 					end
 				end
 
@@ -187,14 +187,14 @@ return function()
 		RenderSearchBar()
 		ImGui.Separator()
 
-		local FilteredItems = FilterGear.GetFilterGear()
+		local FilteredItems = ItemSystem.GetItemSystem()
 		if #FilteredItems == 0 then
 			ImGui.TextDisabled("No valid " .. State.SelectedSlot .. " items found in inventory.")
 			ImGui.EndChild()
 			return
 		end
 
-		local CurrentSet = SetManager.GetSet(State.SelectedJob, State.SelectedSet) or { Slots = {} }
+		local CurrentSet = SetSystem.GetSet(State.SelectedJob, State.SelectedSet) or { Slots = {} }
 		local SlotItems = CurrentSet.Slots[State.SelectedSlot] or {}
 
 		RenderGearList(FilteredItems, SlotItems)

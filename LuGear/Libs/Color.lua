@@ -2,6 +2,7 @@ local ImGui = require("imgui")
 
 local BlackColor = { 0, 0, 0, 1 }
 local WhiteColor = { 1, 1, 1, 1 }
+local DefaultRed = { 0.83, 0.33, 0.28, 0.78 }
 
 local Module = {}
 

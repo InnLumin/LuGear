@@ -1,7 +1,7 @@
 local ImGui = require("imgui")
-local State = require("State")
-local FilterGear = require("Libs.FilterGear")
-local SetManager = require("Libs.SetManager")
+local State = require("Core.State")
+local ItemSystem = require("Systems.ItemSystem")
+local SetSystem = require("Systems.SetSystem")
 local Color = require("Libs.Color")
 local Theme = require("Libs.Theme")
 
@@ -28,6 +28,8 @@ end
 ---@return nil
 -- Renders the 4x4 equipment grid UI component
 return function()
+	local ThemeColors = Theme.SelectedTheme.Colors
+
 	if ImGui.BeginChild("EquipmentGrid", { 320, 320 }, true) then
 		ImGui.Text("Equipment")
 		ImGui.Separator()
@@ -35,13 +37,13 @@ return function()
 		if ImGui.BeginTable("EquipTable", 4, TableFlags) then
 			for _, Row in ipairs(EquipmentSlots) do
 				for _, SlotName in ipairs(Row) do
-					local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
+					local Set = SetSystem.GetSet(State.SelectedJob, State.SelectedSet)
 					local SetSlots = Set and Set.Slots and Set.Slots[SlotName]
 
 					local ButtonLabel = SlotName
 					local IsActive = (State.SelectedSlot == SlotName)
 					local IsFilled = (SetSlots and #SetSlots > 0)
-					local FinalColor = Theme.SelectedTheme.Colors.Inactive
+					local FinalColor = ThemeColors.Inactive
 					local FinalTextColor = nil
 
 					ImGui.TableNextColumn()
@@ -55,16 +57,16 @@ return function()
 							ButtonLabel = FirstItem.Name
 						end
 
-						FinalTextColor = Theme.SelectedTheme.Colors.Active
+						FinalTextColor = ThemeColors.Active
 					end
 
 					if IsActive then
-						FinalColor = Color.Darken(Theme.SelectedTheme.Colors.Hover, 0.3)
+						FinalColor = Color.Darken(ThemeColors.Hover, 0.3)
 					end
 
 					ImGui.PushStyleColor(ImGuiCol_Button, FinalColor)
-					ImGui.PushStyleColor(ImGuiCol_ButtonHovered, Theme.SelectedTheme.Colors.Hover)
-					ImGui.PushStyleColor(ImGuiCol_ButtonActive, Color.Saturate(Theme.SelectedTheme.Colors.Hover, 0.2))
+					ImGui.PushStyleColor(ImGuiCol_ButtonHovered, ThemeColors.Hover)
+					ImGui.PushStyleColor(ImGuiCol_ButtonActive, Color.Lighten(ThemeColors.Hover, 0.2))
 
 					if FinalTextColor then
 						ImGui.PushStyleColor(ImGuiCol_Text, FinalTextColor)
@@ -75,7 +77,7 @@ return function()
 							State.SelectedSlot = "None"
 						else
 							State.SelectedSlot = SlotName
-							FilterGear.UpdateFilteredGear(SlotName)
+							ItemSystem.UpdateFilteredGear(SlotName)
 						end
 					end
 

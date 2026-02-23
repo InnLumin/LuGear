@@ -1,5 +1,5 @@
-local SetManager = require("Libs.SetManager")
-local State = require("State")
+local SetSystem = require("Systems.SetSystem")
+local State = require("Core.State")
 
 local OrderedSlots = {
 	"Main",
@@ -72,7 +72,7 @@ end
 ---Generates a formatted Lua string representing the gear sets for Luashitacast
 ---@return string
 function Module.ExportJobSets()
-	local Sets = SetManager.GetSets(State.SelectedJob)
+	local Sets = SetSystem.GetSets(State.SelectedJob)
 
 	local Lines = {}
 	table.insert(Lines, "local sets = {")

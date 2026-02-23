@@ -1,29 +1,26 @@
-local MemoryService = AshitaCore:GetMemoryManager()
-local ResourceService = AshitaCore:GetResourceManager()
+local MemoryManager = AshitaCore:GetMemoryManager()
+local ResourceManager = AshitaCore:GetResourceManager()
 
 local Event = require("Libs.Event")
 
 local JOB_STRING = "jobs.names_abbr"
 
-local MainJobChange = Event.new()
-local SubJobChange = Event.new()
-
-local Player = MemoryService:GetPlayer()
+local Player = MemoryManager:GetPlayer()
 
 local LastMainJob = Player:GetMainJob()
 local LastSubJob = Player:GetSubJob()
 
 local Module = {
-	MainJobChange = MainJobChange,
-	SubJobChange = SubJobChange,
+	MainJobChange = Event.new(),
+	SubJobChange = Event.new(),
 }
 
 function Module.GetMainJob()
-	return ResourceService:GetString(JOB_STRING, Player:GetMainJob())
+	return ResourceManager:GetString(JOB_STRING, Player:GetMainJob())
 end
 
 function Module.GetSubJob()
-	return ResourceService:GetString(JOB_STRING, Player:GetSubJob())
+	return ResourceManager:GetString(JOB_STRING, Player:GetSubJob())
 end
 
 ashita.events.register("packet_in", "subjob_packet_in", function(e)
@@ -36,14 +33,14 @@ ashita.events.register("packet_in", "subjob_packet_in", function(e)
 		end
 
 		if MainJob and MainJob ~= LastMainJob then
-			local CurrentMainJob = ResourceService:GetString(JOB_STRING, MainJob)
-			MainJobChange:Fire(CurrentMainJob)
+			local CurrentMainJob = ResourceManager:GetString(JOB_STRING, MainJob)
+			Module.MainJobChange:Fire(CurrentMainJob)
 			LastMainJob = MainJob
 		end
 
 		if SubJob and SubJob ~= LastSubJob then
-			local CurrentSubJob = ResourceService:GetString(JOB_STRING, SubJob)
-			SubJobChange:Fire(CurrentSubJob)
+			local CurrentSubJob = ResourceManager:GetString(JOB_STRING, SubJob)
+			Module.SubJobChange:Fire(CurrentSubJob)
 			LastSubJob = SubJob
 		end
 	end
