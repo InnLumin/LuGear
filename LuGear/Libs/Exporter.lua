@@ -1,24 +1,6 @@
 local SetManager = require("Libs.SetManager")
 local State = require("State")
-
-local OrderedSlots = {
-	"Main",
-	"Sub",
-	"Ranged",
-	"Ammo",
-	"Head",
-	"Neck",
-	"Ear L",
-	"Ear R",
-	"Body",
-	"Hands",
-	"Ring L",
-	"Ring R",
-	"Back",
-	"Waist",
-	"Legs",
-	"Feet",
-}
+local Constants = require("Constants")
 
 local Module = {}
 
@@ -49,6 +31,7 @@ local function FormatAugments(augments)
 	extract(PlayerPart)
 
 	if PetPart then
+		PetPart = PetPart:gsub("%.%s+", ".")
 		extract(PetPart, "Pet: ")
 	end
 
@@ -86,15 +69,8 @@ function Module.ExportJobSets()
 
 		table.insert(Lines, string.format("    %s = {", FinalSetName))
 
-		for _, SlotName in ipairs(OrderedSlots) do
+		for _, SlotName in ipairs(Constants.Slots) do
 			local GearTable = Data.Slots and Data.Slots[SlotName]
-
-			if SlotName == "Ring L" or SlotName == "Ring R" then
-				SlotName = SlotName == "Ring L" and "Ring1" or "Ring2"
-			end
-			if SlotName == "Ear L" or SlotName == "Ear R" then
-				SlotName = SlotName == "Ear L" and "Ear1" or "Ear2"
-			end
 
 			if GearTable and #GearTable > 0 then
 				if Data.LevelSyncSet then

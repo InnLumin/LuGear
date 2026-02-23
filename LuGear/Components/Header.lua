@@ -19,7 +19,7 @@ local function JobSelection()
 	ImGui.SetNextItemWidth(90)
 
 	Dropdown("##JobsDropdown", {
-		Options = Constants.JobArray,
+		Options = Constants.Jobs,
 		Value = State.SelectedJob,
 		Activated = function(selected_option)
 			State.SelectedJob = selected_option

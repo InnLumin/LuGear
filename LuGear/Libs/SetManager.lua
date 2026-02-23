@@ -167,6 +167,25 @@ function Module.UpdateSlot(item_name, augments, job_name, set_name, slot_name)
 
 	Set.Slots[SelectedSlot] = SlotGear
 
+	-- Handle Earring/Ring change
+	local function HandleSlotNameChange(old_name, new_name)
+		if Set.Slots[old_name] then
+			-- If they have a Ear1 already we should just delete Ear L
+			if Set.Slots[new_name] then
+				Set.Slots[old_name] = nil
+			else
+				-- Else we switch Ear L to Ear 1
+				Set.Slots[new_name] = Set.Slots[old_name]
+				Set.Slots[old_name] = nil
+			end
+		end
+	end
+
+	HandleSlotNameChange("Ear L", "Ear1")
+	HandleSlotNameChange("Ear R", "Ear2")
+	HandleSlotNameChange("Ring L", "Ring1")
+	HandleSlotNameChange("Ring R", "Ring2")
+
 	State.SaveSettings()
 end
 

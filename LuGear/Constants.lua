@@ -32,7 +32,7 @@
 -- }
 
 local Module = {
-	JobArray = {
+	Jobs = {
 		"GLOBAL",
 		"WAR",
 		"MNK",
@@ -56,6 +56,24 @@ local Module = {
 		"SCH",
 		"GEO",
 		"RUN",
+	},
+	Slots = {
+		"Main",
+		"Sub",
+		"Ranged",
+		"Ammo",
+		"Head",
+		"Neck",
+		"Ear1",
+		"Ear2",
+		"Body",
+		"Hands",
+		"Ring1",
+		"Ring2",
+		"Back",
+		"Waist",
+		"Legs",
+		"Feet",
 	},
 }
 
