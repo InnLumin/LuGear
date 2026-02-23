@@ -124,14 +124,7 @@ local function RenderGearList(items, current_gear)
 				end
 
 				if ImGui.Selectable(Item.Name .. "##" .. Item.Id, false, ImGuiSelectableFlags_SpanAllColumns) then
-					SetManager.UpdateSlotForJobSet(
-						State.SelectedJob,
-						State.SelectedSet,
-						State.SelectedSlot,
-						Item.Name,
-						Item.Augments
-					)
-
+					SetManager.UpdateSlot(Item.Name, Item.Augments)
 					if IsGhostItem then
 						FilterGear.UpdateFilteredGear(State.SelectedSlot)
 					end

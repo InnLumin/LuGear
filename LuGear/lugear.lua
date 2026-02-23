@@ -27,6 +27,11 @@ ashita.events.register("load", "lugear_load_callback", function()
 	State.Init()
 end)
 
+ashita.events.register("packet_in", "lugear_packet_in_callback", function(e)
+	-- if e.id == 0x0020 then
+	-- end
+end)
+
 -- Callback for rendering the UI
 ---@return nil
 ashita.events.register("d3d_present", "lugear_present_callback", function()

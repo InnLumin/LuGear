@@ -119,18 +119,23 @@ function Module.ToggleLevelSync(job_name, set_name)
 	State.SaveSettings()
 end
 
----@param job_name JobName
----@param set_name string
----@param slot_name SlotName
+---Updates a slot in a set. uses state to get the current job, set and slot, unless given.
 ---@param item_name string
 ---@param augments string
-function Module.UpdateSlotForJobSet(job_name, set_name, slot_name, item_name, augments)
-	local Set = Module.GetSet(job_name, set_name)
+---@param job_name JobName?
+---@param set_name string?
+---@param slot_name SlotName?
+function Module.UpdateSlot(item_name, augments, job_name, set_name, slot_name)
+	local SelectedJob = job_name or State.SelectedJob
+	local SelectedSet = set_name or State.SelectedSet
+	local SelectedSlot = slot_name or State.SelectedSlot
+
+	local Set = Module.GetSet(SelectedJob, SelectedSet)
 	if not Set then
 		return
 	end
 
-	local SlotGear = Set.Slots[slot_name] or {}
+	local SlotGear = Set.Slots[SelectedSlot] or {}
 
 	-- For non-level sync sets, clear all other items before update
 	if not Set.LevelSyncSet then
@@ -160,7 +165,7 @@ function Module.UpdateSlotForJobSet(job_name, set_name, slot_name, item_name, au
 		SortLevelSyncList(SlotGear)
 	end
 
-	Set.Slots[slot_name] = SlotGear
+	Set.Slots[SelectedSlot] = SlotGear
 
 	State.SaveSettings()
 end
