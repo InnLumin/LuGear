@@ -5,8 +5,6 @@ local State = require("State")
 local GetAugments = require("Libs.GetAugments")
 local SetManager = require("Libs.SetManager")
 
-local Inventory = MemoryManager:GetInventory()
-
 local SlotBitmasks = {
 	["Main"] = 1,
 	["Sub"] = 2,
@@ -43,25 +41,6 @@ local TypeBitmasks = {
 	[256] = "Feet",
 }
 
-local SearchContainers = {
-	Inventory = 0,
-	--MogSafe = 1,
-	--MogSafe2 = 9,
-	--Storage = 2,
-	--MogLocker = 4,
-	--MogSatchel = 5,
-	--MogSack = 6,
-	--MogCase = 7,
-	Wardrobe1 = 8,
-	Wardrobe2 = 10,
-	Wardrobe3 = 11,
-	Wardrobe4 = 12,
-	Wardrobe5 = 13,
-	Wardrobe6 = 14,
-	Wardrobe7 = 15,
-	Wardrobe8 = 16,
-}
-
 local JobBitmasks = {
 	["WAR"] = 0x00000002,
 	["MNK"] = 0x00000004,
@@ -87,6 +66,25 @@ local JobBitmasks = {
 	["RUN"] = 0x00400000,
 }
 
+local SearchContainers = {
+	Inventory = 0,
+	--MogSafe = 1,
+	--MogSafe2 = 9,
+	--Storage = 2,
+	--MogLocker = 4,
+	--MogSatchel = 5,
+	--MogSack = 6,
+	--MogCase = 7,
+	Wardrobe1 = 8,
+	Wardrobe2 = 10,
+	Wardrobe3 = 11,
+	Wardrobe4 = 12,
+	Wardrobe5 = 13,
+	Wardrobe6 = 14,
+	Wardrobe7 = 15,
+	Wardrobe8 = 16,
+}
+
 local Skills = {
 	[1] = "Hand-to-Hand",
 	[2] = "Dagger",
@@ -105,9 +103,26 @@ local Skills = {
 	[27] = "Throwing",
 }
 
+local ElementalReplacements = {
+	["\xEF\x1F"] = "Fire",
+	["\xEF\x20"] = "Ice",
+	["\xEF\x21"] = "Wind",
+	["\xEF\x22"] = "Earth",
+	["\xEF\x23"] = "Lightning",
+	["\xEF\x24"] = "Water",
+	["\xEF\x25"] = "Light",
+	["\xEF\x26"] = "Dark",
+}
+
+---@type table<string, Item>
+local ItemCache = {}
+
 ---@type Item[]
-local FilteredGear = {}
-local SeenItems = {}
+local FilteredItems = {}
+
+local IsDirty = true
+
+local Inventory = MemoryManager:GetInventory()
 
 local Module = {}
 
@@ -145,17 +160,6 @@ local function GetItemTypeString(item)
 	return "Item"
 end
 
-local ElementalReplacements = {
-	["\xEF\x1F"] = "Fire",
-	["\xEF\x20"] = "Ice",
-	["\xEF\x21"] = "Wind",
-	["\xEF\x22"] = "Earth",
-	["\xEF\x23"] = "Lightning",
-	["\xEF\x24"] = "Water",
-	["\xEF\x25"] = "Light",
-	["\xEF\x26"] = "Dark",
-}
-
 ---Fixes problems with the description like elemental codes
 ---@param description string
 ---@return string
@@ -174,45 +178,30 @@ local function FixDescription(description)
 	return description
 end
 
--- Processes a single inventory item and adds it to the filter list if valid
----@param item item_t
----@param target_mask number
-local function ProcessInventoryItem(item, target_mask)
+local function ProcessInventoryItem(item)
 	local ItemData = ResourceManager:GetItemById(item.Id)
-	local JobMask = JobBitmasks[State.SelectedJob]
-
 	if not ItemData then
-		return
-	end
-
-	-- Guard Clause: Slot bitmask check
-	if bit.band(ItemData.Slots, target_mask) == 0 then
-		return
-	end
-
-	-- Guard Clause: Job mask check
-	if State.SelectedJob ~= "GLOBAL" and JobMask and bit.band(ItemData.Jobs, JobMask) == 0 then
 		return
 	end
 
 	local Augments = GetAugments(item, false) -- Might have to check if it's equipped
 	local Id = tostring(ItemData.Id) .. Augments
 
-	if SeenItems[Id] then
+	if ItemCache[Id] then
 		return
 	end
 
-	table.insert(FilteredGear, {
+	ItemCache[Id] = {
 		Name = ItemData.Name[1],
 		Description = FixDescription(ItemData.Description[1]) or "",
 		Augments = Augments,
 		Type = GetItemTypeString(ItemData),
 		Level = ItemData.Level,
 		Id = Id, -- Id just for if other systems need a unqiue id
+		SlotId = ItemData.Slots,
+		JobId = ItemData.Jobs,
 		GhostItem = false,
-	})
-
-	SeenItems[Id] = true
+	}
 end
 
 ---Process a single gear item from the set manager
@@ -230,63 +219,96 @@ local function ProcessSetGear(gear)
 	local Augments = gear.Augments or ""
 	local Id = tostring(ItemData.Id) .. Augments
 
-	if SeenItems[Id] then
+	if ItemCache[Id] then
 		return
 	end
 
-	table.insert(FilteredGear, {
+	ItemCache[Id] = {
 		Name = gear.Name,
 		Description = FixDescription(ItemData.Description[1] or ""),
 		Augments = Augments,
 		Type = GetItemTypeString(ItemData),
 		Level = ItemData.Level,
 		Id = Id,
+		SlotId = ItemData.Slots,
+		JobId = ItemData.Jobs,
 		GhostItem = true,
-	})
-
-	SeenItems[Id] = true
+	}
 end
 
--- Returns the current filtered gear list
----@return Item[]
-function Module.GetFilterGear()
-	return FilteredGear
-end
-
--- Iterates all containers to update the list of gear for the selected slot
----@param slot_name SlotName
-function Module.UpdateFilteredGear(slot_name)
-	local TargetMask = SlotBitmasks[slot_name]
-
-	if not TargetMask then
-		return
-	end
-
-	FilteredGear = {}
-	SeenItems = {}
+function Module.Rescan()
+	Module.ClearCache()
 
 	-- Scan inventory
 	for _, ContainerID in pairs(SearchContainers) do
 		local ContainerMax = Inventory:GetContainerCountMax(ContainerID)
 
-		for Index = 0, ContainerMax do
+		for Index = 1, ContainerMax do
 			local Item = Inventory:GetContainerItem(ContainerID, Index)
 
 			if Item then
-				ProcessInventoryItem(Item, TargetMask)
+				ProcessInventoryItem(Item)
 			end
 		end
 	end
 
 	-- Scan set manager
 	local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
-	local SelectedSlot = Set and Set.Slots[slot_name] or nil
+	local SelectedSlot = Set and Set.Slots[State.SelectedSlot] or nil
 
 	if SelectedSlot then
 		for _, Gear in ipairs(SelectedSlot) do
 			ProcessSetGear(Gear)
 		end
 	end
+
+	IsDirty = false
+end
+
+function Module.CacheDirty(value)
+	if type(value) ~= "boolean" or IsDirty == value then
+		return
+	end
+
+	IsDirty = value
+end
+
+function Module.ClearCache()
+	ItemCache = {}
+	FilteredItems = {}
+	IsDirty = true
+end
+
+---Returns a table of items for that slot and optionally job.
+---@param slot_name string
+---@param job_name string?
+---@return Item[]
+function Module.GetItemsFor(slot_name, job_name)
+	if IsDirty then
+		Module.Rescan()
+	end
+
+	local TargetSlotId = slot_name and SlotBitmasks[slot_name] or nil
+	local TargetJobId = job_name and JobBitmasks[job_name] or nil
+	local Key = tostring(TargetSlotId) .. tostring(TargetJobId or "GLOBAL")
+
+	if FilteredItems[Key] then
+		return FilteredItems[Key]
+	end
+
+	local Results = {}
+
+	for _, item in pairs(ItemCache) do
+		if TargetSlotId and bit.band(item.SlotId, TargetSlotId) ~= 0 then
+			if not TargetJobId or bit.band(item.JobId, TargetJobId) ~= 0 or job_name == "GLOBAL" then
+				table.insert(Results, item)
+			end
+		end
+	end
+
+	FilteredItems[Key] = Results
+
+	return Results
 end
 
 return Module

@@ -7,6 +7,8 @@ addon.link = "https://github.com/InnLumin/LuGear"
 local ImGui = require("imgui")
 local State = require("State")
 local Sets = require("UIs.Sets.Sets")
+local UIUtil = require("Libs.UIUtil")
+local ItemSystem = require("Libs.ItemSystem")
 
 local WindowFlags = bit.bor(ImGuiWindowFlags_NoSavedSettings, ImGuiWindowFlags_NoResize)
 local WindowWidth, WindowHeight = 736, 436
@@ -28,8 +30,9 @@ ashita.events.register("load", "lugear_load_callback", function()
 end)
 
 ashita.events.register("packet_in", "lugear_packet_in_callback", function(e)
-	-- if e.id == 0x0020 then
-	-- end
+	if e.id == 0x0020 then
+		ItemSystem.CacheDirty(true)
+	end
 end)
 
 -- Callback for rendering the UI
@@ -40,6 +43,7 @@ ashita.events.register("d3d_present", "lugear_present_callback", function()
 	end
 
 	ImGui.SetNextWindowSize({ WindowWidth, WindowHeight }, ImGui.ImGuiCond_Once)
+	UIUtil.CenterNextWindow(ImGuiCond_Once)
 
 	if ImGui.Begin("LuGear", IsOpen, WindowFlags) then
 		if ImGui.BeginTabBar("MainTabBar") then

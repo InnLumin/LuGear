@@ -1,13 +1,20 @@
 local ImGui = require("imgui")
 local State = require("State")
 local Constants = require("Constants")
-local FilterGear = require("Libs.FilterGear")
 local SetManager = require("Libs.SetManager")
 local Exporter = require("Libs.Exporter")
 local Popup = require("Components.Popup")
 local Dropdown = require("Components.Dropdown")
+local ItemSystem = require("Libs.ItemSystem")
+local UIUtil = require("Libs.UIUtil")
 
 local LevelSyncSetByDefault = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
+
+local ButtonPadding = 10
+
+local function GetButtonSize(text)
+	return { UIUtil.AddPaddingToText(text, ButtonPadding), 0 }
+end
 
 ---@return nil
 -- Renders the job selection combo box
@@ -33,7 +40,7 @@ end
 -- Renders the set selection combo box for the current job
 local function SetSelection()
 	ImGui.AlignTextToFramePadding()
-	ImGui.Text("Current Set:")
+	ImGui.Text("Set:")
 	ImGui.SameLine()
 	ImGui.SetNextItemWidth(120)
 
@@ -50,7 +57,7 @@ local function SetSelection()
 		Activated = function(selected_option)
 			State.SelectedSet = selected_option
 			if State.SelectedSlot ~= "" or State.SelectedSlot ~= "None" then
-				FilterGear.UpdateFilteredGear(State.SelectedSlot)
+				ItemSystem.CacheDirty(true)
 			end
 		end,
 	})
@@ -64,7 +71,9 @@ local NewSetPopup, ToggleNewSetPopup = Popup("New Set##NewSetPopup", NewSetSize)
 -- Renders the button and modal for creating a new gear set
 ---@return nil
 local function NewSet()
-	if ImGui.Button("New Set") then
+	local ButtonLabel = "New"
+
+	if ImGui.Button(ButtonLabel, GetButtonSize(ButtonLabel)) then
 		ToggleNewSetPopup()
 	end
 
@@ -107,7 +116,9 @@ local function EditSet()
 		return
 	end
 
-	if ImGui.Button("Edit") then
+	local ButtonLabel = "Edit"
+
+	if ImGui.Button(ButtonLabel, GetButtonSize(ButtonLabel)) then
 		EditSetName[1] = State.SelectedSet
 
 		local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
@@ -164,25 +175,34 @@ local ExportText = { "" }
 local ExportSize = { 512, 0 }
 local DrawExportPopup, ToggleExport = Popup("Export##HeaderExport", ExportSize)
 
----@return nil
 local function ExportSet()
-	if State.SelectedSet == "" or State.SelectedSet == "None" then
+	local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
+
+	if not Set or State.SelectedSet == "" or State.SelectedSet == "None" then
 		return
 	end
 
-	if ImGui.Button("Export" .. "##" .. "HeaderExportBtn") then
-		ExportText[1] = Exporter.ExportJobSets()
+	local ButtonLabel = "Export"
+
+	if ImGui.Button(ButtonLabel, GetButtonSize(ButtonLabel)) then
+		ExportText[1] = Exporter.ExportSet(Set, State.SelectedSet)
 		ToggleExport()
 	end
 
 	DrawExportPopup(function()
-		ImGui.InputTextMultiline(
-			"##export_code",
-			ExportText,
-			#ExportText[1] + 1024,
-			{ -1, 200 },
-			ImGuiInputTextFlags_ReadOnly
-		)
+		local TextWidth = ImGui.CalcTextSize(ExportText[1])
+
+		if ImGui.BeginChild("ExportScrollRegion", { -1, 248 }, false, ImGuiWindowFlags_HorizontalScrollbar) then
+			ImGui.InputTextMultiline(
+				"##export_code",
+				ExportText,
+				#ExportText[1] + 1024,
+				{ TextWidth, -1 },
+				ImGuiInputTextFlags_ReadOnly
+			)
+
+			ImGui.EndChild()
+		end
 
 		ImGui.Separator()
 
@@ -191,6 +211,45 @@ local function ExportSet()
 		end
 		if ImGui.Button("Close", ExportSize) then
 			ToggleExport()
+		end
+	end)
+end
+
+local ExportAllText = { "" }
+local ExportAllSize = { 512, 0 }
+local DrawExportAllPopup, ToggleExportAll = Popup("Export All##HeaderExportAll", ExportAllSize)
+
+---@return nil
+local function ExportAllSet()
+	local ButtonLabel = "Export All"
+
+	if ImGui.Button(ButtonLabel, GetButtonSize(ButtonLabel)) then
+		ExportAllText[1] = Exporter.ExportJobSets()
+		ToggleExportAll()
+	end
+
+	DrawExportAllPopup(function()
+		local TextWidth = ImGui.CalcTextSize(ExportAllText[1])
+
+		if ImGui.BeginChild("ExportScrollRegion", { -1, 248 }, false, ImGuiWindowFlags_HorizontalScrollbar) then
+			ImGui.InputTextMultiline(
+				"##export_code_ExportAll",
+				ExportAllText,
+				#ExportText[1] + 1024,
+				{ TextWidth, -1 },
+				ImGuiInputTextFlags_ReadOnly
+			)
+
+			ImGui.EndChild()
+		end
+
+		ImGui.Separator()
+
+		if ImGui.Button("Copy to Clipboard", ExportSize) then
+			ImGui.SetClipboardText(ExportAllText[1])
+		end
+		if ImGui.Button("Close", ExportSize) then
+			ToggleExportAll()
 		end
 	end)
 end
@@ -205,11 +264,13 @@ return function()
 
 		NewSet()
 		ImGui.SameLine()
-
 		EditSet()
+
 		ImGui.SameLine()
 
 		ExportSet()
+		ImGui.SameLine()
+		ExportAllSet()
 
 		ImGui.EndChild()
 	end

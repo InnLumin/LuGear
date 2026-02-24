@@ -1,9 +1,9 @@
 local ImGui = require("imgui")
 local State = require("State")
 local SetManager = require("Libs.SetManager")
-local FilterGear = require("Libs.FilterGear")
 local Theme = require("Libs.Theme")
 local Color = require("Libs.Color")
+local ItemSystem = require("Libs.ItemSystem")
 
 local TableFlags = bit.bor(
 	ImGuiTableFlags_Borders,
@@ -22,13 +22,21 @@ local SearchText = {
 local LastSlot = State.SelectedSlot
 
 -- Renders the gear search input and clear button
----@return nil
 local function RenderSearchBar()
+	local Style = ImGui.GetStyle()
+	local ClearButtonWidth = 60
+
+	local InputTextWidth = -1
+	if SearchText.Text[1] ~= "" then
+		InputTextWidth = ImGui.GetContentRegionAvail() - ClearButtonWidth - Style.ItemSpacing.x
+	end
+
+	ImGui.SetNextItemWidth(InputTextWidth)
 	ImGui.InputText("##Search", SearchText.Text, SearchText.Size)
 
 	if SearchText.Text[1] ~= "" then
 		ImGui.SameLine()
-		if ImGui.Button("Clear") then
+		if ImGui.Button("Clear", { ClearButtonWidth, 0 }) then
 			SearchText.Text[1] = ""
 		end
 	end
@@ -126,7 +134,7 @@ local function RenderGearList(items, current_gear)
 				if ImGui.Selectable(Item.Name .. "##" .. Item.Id, false, ImGuiSelectableFlags_SpanAllColumns) then
 					SetManager.UpdateSlot(Item.Name, Item.Augments)
 					if IsGhostItem then
-						FilterGear.UpdateFilteredGear(State.SelectedSlot)
+						ItemSystem.CacheDirty(true)
 					end
 				end
 
@@ -181,14 +189,15 @@ return function()
 			ImGui.TextDisabled("Select a slot on the left to view gear...")
 			ImGui.Separator()
 			ImGui.EndChild()
+			LastSlot = State.SelectedSlot
 			return
 		end
 
 		RenderSearchBar()
 		ImGui.Separator()
 
-		local FilteredItems = FilterGear.GetFilterGear()
-		if #FilteredItems == 0 then
+		local Items = ItemSystem.GetItemsFor(State.SelectedSlot, State.SelectedJob)
+		if #Items == 0 then
 			ImGui.TextDisabled("No valid " .. State.SelectedSlot .. " items found in inventory.")
 			ImGui.EndChild()
 			return
@@ -197,7 +206,7 @@ return function()
 		local CurrentSet = SetManager.GetSet(State.SelectedJob, State.SelectedSet) or { Slots = {} }
 		local SlotItems = CurrentSet.Slots[State.SelectedSlot] or {}
 
-		RenderGearList(FilteredItems, SlotItems)
+		RenderGearList(Items, SlotItems)
 
 		ImGui.EndChild()
 	end

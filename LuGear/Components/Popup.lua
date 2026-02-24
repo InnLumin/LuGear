@@ -1,4 +1,5 @@
 local ImGui = require("imgui")
+local UIUtil = require("Libs.UIUtil")
 
 local Flags = bit.bor(ImGuiWindowFlags_AlwaysAutoResize, ImGuiWindowFlags_NoSavedSettings, ImGuiWindowFlags_NoCollapse)
 
@@ -13,6 +14,8 @@ return function(title, size)
 			if size then
 				ImGui.SetNextWindowSize(size)
 			end
+
+			UIUtil.CenterNextWindow(ImGuiCond_Once)
 
 			if ImGui.Begin(title, IsOpen, Flags) then
 				render_content()

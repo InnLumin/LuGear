@@ -15,6 +15,8 @@
 ---@field Type ItemType
 ---@field Level number
 ---@field Id string
+---@field SlotId number
+---@field JobId number
 ---@field GhostItem boolean
 
 ---@type Sets
