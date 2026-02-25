@@ -223,8 +223,8 @@ local function ExportAllSet()
 	end
 
 	DrawExportAllPopup(function()
-		local TextWidth = ImGui.CalcTextSize(ExportAllText[1])
-		local FinalWidth = TextWidth >= ExportAllText[1] and TextWidth or ExportAllText[1]
+		local TextWidth = UIUtil.AddPaddingToText(ExportAllText[1], 50)
+		local FinalWidth = TextWidth >= ExportAllSize[1] and TextWidth or ExportAllSize[1]
 
 		if ImGui.BeginChild("ExportScrollRegion", { -1, 248 }, false, ImGuiWindowFlags_HorizontalScrollbar) then
 			ImGui.InputTextMultiline(
