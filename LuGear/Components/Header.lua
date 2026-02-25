@@ -16,7 +16,6 @@ local function GetButtonSize(text)
 	return { UIUtil.AddPaddingToText(text, ButtonPadding), 0 }
 end
 
----@return nil
 -- Renders the job selection combo box
 local function JobSelection()
 	ImGui.AlignTextToFramePadding()
@@ -36,7 +35,6 @@ local function JobSelection()
 	})
 end
 
----@return nil
 -- Renders the set selection combo box for the current job
 local function SetSelection()
 	ImGui.AlignTextToFramePadding()
@@ -66,7 +64,6 @@ local NewSetSize = { 248, 0 }
 local NewSetPopup, ToggleNewSetPopup = Popup("New Set##NewSetPopup", NewSetSize)
 
 -- Renders the button and modal for creating a new gear set
----@return nil
 local function NewSet()
 	local ButtonLabel = "New"
 
@@ -187,14 +184,15 @@ local function ExportSet()
 	end
 
 	DrawExportPopup(function()
-		local TextWidth = ImGui.CalcTextSize(ExportText[1])
+		local TextWidth = UIUtil.AddPaddingToText(ExportText[1], 50)
+		local FinalWidth = TextWidth >= ExportSize[1] and TextWidth or ExportSize[1]
 
 		if ImGui.BeginChild("ExportScrollRegion", { -1, 248 }, false, ImGuiWindowFlags_HorizontalScrollbar) then
 			ImGui.InputTextMultiline(
 				"##export_code",
 				ExportText,
 				#ExportText[1] + 1024,
-				{ TextWidth, -1 },
+				{ FinalWidth, -1 },
 				ImGuiInputTextFlags_ReadOnly
 			)
 
@@ -216,7 +214,6 @@ local ExportAllText = { "" }
 local ExportAllSize = { 512, 0 }
 local DrawExportAllPopup, ToggleExportAll = Popup("Export All##HeaderExportAll", ExportAllSize)
 
----@return nil
 local function ExportAllSet()
 	local ButtonLabel = "Export All"
 
@@ -227,13 +224,14 @@ local function ExportAllSet()
 
 	DrawExportAllPopup(function()
 		local TextWidth = ImGui.CalcTextSize(ExportAllText[1])
+		local FinalWidth = TextWidth >= ExportAllText[1] and TextWidth or ExportAllText[1]
 
 		if ImGui.BeginChild("ExportScrollRegion", { -1, 248 }, false, ImGuiWindowFlags_HorizontalScrollbar) then
 			ImGui.InputTextMultiline(
 				"##export_code_ExportAll",
 				ExportAllText,
 				#ExportText[1] + 1024,
-				{ TextWidth, -1 },
+				{ FinalWidth, -1 },
 				ImGuiInputTextFlags_ReadOnly
 			)
 
@@ -267,6 +265,7 @@ return function()
 
 		ExportSet()
 		ImGui.SameLine()
+
 		ExportAllSet()
 
 		ImGui.EndChild()
