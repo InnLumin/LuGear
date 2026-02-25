@@ -56,9 +56,6 @@ local function SetSelection()
 		Value = State.SelectedSet,
 		Activated = function(selected_option)
 			State.SelectedSet = selected_option
-			if State.SelectedSlot ~= "" or State.SelectedSlot ~= "None" then
-				ItemSystem.CacheDirty(true)
-			end
 		end,
 	})
 end

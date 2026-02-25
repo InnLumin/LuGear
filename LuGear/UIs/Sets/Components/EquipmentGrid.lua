@@ -77,7 +77,6 @@ return function()
 							State.SelectedSlot = "None"
 						else
 							State.SelectedSlot = SlotName
-							ItemSystem.CacheDirty(true)
 						end
 					end
 
