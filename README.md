@@ -14,10 +14,20 @@ Made currently for Ashita v4.16
 - **Export Functionality**: Direct export to luashitacast-compatible Lua code
 - **Real-time Preview**: See your gear configurations before exporting
 
+## Installation
+
+1. **Download**: Grab the latest release from the [Releases Page](https://github.com/InnLumin/LuGear/releases/latest).
+2. **Extract**: Unzip the `LuGear.zip` file. You should be left with a folder named `LuGear`.
+3. **Move**: Place the `LuGear` folder into your Ashita `addons` directory.
+   
+   > Ensure your directory structure looks like this:
+   > `Ashita/addons/LuGear/lugear.lua`
+   > (If you see `Ashita/addons/LuGear/LuGear/lugear.lua`, the addon will not load)
+
 ## Usage
 
 ### Basic Commands
-- `/lugear` or `/lg` - Toggle the interface
+* `/lugear` or `/lg` - Toggle the interface
 
 ### Creating a New Set
 1. Select your desired job from the dropdown
