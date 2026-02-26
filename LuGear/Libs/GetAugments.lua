@@ -21,15 +21,16 @@ return function(item, ritem)
 		local RawAugment = ResourceManager:GetString("augments", augment.index)
 
 		if RawAugment and type(RawAugment) == "string" then
-			-- Try with two values
-			local Success, Result = pcall(string.format, RawAugment, augment.value, augment.value)
+			local Success, Result = pcall(
+				string.format,
+				RawAugment,
+				augment.value,
+				augment.value,
+				augment.value,
+				augment.value,
+				augment.value
+			)
 
-			-- Try with one value if two failed
-			if not Success then
-				Success, Result = pcall(string.format, RawAugment, augment.value)
-			end
-
-			-- If either succeed insert the result in the output
 			if Success then
 				table.insert(output, Result)
 			end
