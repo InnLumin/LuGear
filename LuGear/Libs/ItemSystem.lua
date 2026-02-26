@@ -178,28 +178,30 @@ local function FixDescription(description)
 	return description
 end
 
+---comment
+---@param item item_t
 local function ProcessInventoryItem(item)
-	local ItemData = ResourceManager:GetItemById(item.Id)
-	if not ItemData then
+	local RItem = ResourceManager:GetItemById(item.Id)
+	if not RItem then
 		return
 	end
 
-	local Augments = GetAugments(item, false) -- Might have to check if it's equipped
-	local Id = tostring(ItemData.Id) .. Augments
+	local Augments = GetAugments(item, RItem) -- Might have to check if it's equipped
+	local Id = tostring(RItem.Id) .. Augments
 
 	if ItemCache[Id] then
 		return
 	end
 
 	ItemCache[Id] = {
-		Name = ItemData.Name[1],
-		Description = FixDescription(ItemData.Description[1]) or "",
+		Name = RItem.Name[1],
+		Description = FixDescription(RItem.Description[1]) or "",
 		Augments = Augments,
-		Type = GetItemTypeString(ItemData),
-		Level = ItemData.Level,
+		Type = GetItemTypeString(RItem),
+		Level = RItem.Level,
 		Id = Id, -- Id just for if other systems need a unqiue id
-		SlotId = ItemData.Slots,
-		JobId = ItemData.Jobs,
+		SlotId = RItem.Slots,
+		JobId = RItem.Jobs,
 		GhostItem = false,
 	}
 end
@@ -211,13 +213,13 @@ local function ProcessSetGear(gear)
 		return
 	end
 
-	local ItemData = ResourceManager:GetItemByName(gear.Name, 0)
-	if not ItemData then
+	local RItem = ResourceManager:GetItemByName(gear.Name, 0)
+	if not RItem then
 		return
 	end
 
 	local Augments = gear.Augments or ""
-	local Id = tostring(ItemData.Id) .. Augments
+	local Id = tostring(RItem.Id) .. Augments
 
 	if ItemCache[Id] then
 		return
@@ -225,13 +227,13 @@ local function ProcessSetGear(gear)
 
 	ItemCache[Id] = {
 		Name = gear.Name,
-		Description = FixDescription(ItemData.Description[1] or ""),
+		Description = FixDescription(RItem.Description[1] or ""),
 		Augments = Augments,
-		Type = GetItemTypeString(ItemData),
-		Level = ItemData.Level,
+		Type = GetItemTypeString(RItem),
+		Level = RItem.Level,
 		Id = Id,
-		SlotId = ItemData.Slots,
-		JobId = ItemData.Jobs,
+		SlotId = RItem.Slots,
+		JobId = RItem.Jobs,
 		GhostItem = true,
 	}
 end

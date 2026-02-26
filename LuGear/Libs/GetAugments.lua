@@ -2,22 +2,37 @@ local ResourceManager = AshitaCore:GetResourceManager()
 
 local ItemData = require("Vendor.itemdata")
 
+---Handles parsing augments and returning as a string
+---@param item item_t
+---@param ritem IItem
 return function(item, ritem)
 	if item == nil or ritem == nil then
 		return ""
 	end
 
-	local augments = ItemData.parse(item, ritem).augments
+	local Augments = ItemData.parse_augments(item, ritem)
 
-	if not augments or #augments == 0 then
+	if not Augments or #Augments == 0 then
 		return ""
 	end
 
 	local output = {}
-	for _, Augment in ipairs(augments) do
-		local RawAugment = ResourceManager:GetString("augments", Augment.index)
+	for _, augment in ipairs(Augments) do
+		local RawAugment = ResourceManager:GetString("augments", augment.index)
+
 		if RawAugment and type(RawAugment) == "string" then
-			table.insert(output, string.format(RawAugment, Augment.value))
+			-- Try with two values
+			local Success, Result = pcall(string.format, RawAugment, augment.value, augment.value)
+
+			-- Try with one value if two failed
+			if not Success then
+				Success, Result = pcall(string.format, RawAugment, augment.value)
+			end
+
+			-- If either succeed insert the result in the output
+			if Success then
+				table.insert(output, Result)
+			end
 		end
 	end
 

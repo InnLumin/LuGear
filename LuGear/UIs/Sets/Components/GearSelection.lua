@@ -149,13 +149,11 @@ local function RenderGearList(items, current_gear)
 					ImGui.BeginTooltip()
 					ImGui.Text(Item.Name)
 					ImGui.TextDisabled(string.format("Level: %d | Type: %s", Item.Level, Item.Type))
-					ImGui.Separator()
-					ImGui.PushTextWrapPos(300)
+					--ImGui.Separator()
 					ImGui.Text(Item.Description)
 					if Item.Augments ~= "" then
-						ImGui.Text(Item.Augments)
+						ImGui.TextColored(ThemeColors.Augment, Item.Augments)
 					end
-					ImGui.PopTextWrapPos()
 					if Item.GhostItem then
 						ImGui.Separator()
 						ImGui.TextColored(ThemeColors.Disabled, "This item isn't found in a searchable location.")
