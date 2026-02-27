@@ -1,6 +1,6 @@
 addon.name = "LuGear"
 addon.author = "InnLumin"
-addon.version = "1.2.1"
+addon.version = "1.2.2"
 addon.desc = "A helper addon to help make, making luashitacast profiles easier."
 addon.link = "https://github.com/InnLumin/LuGear"
 
