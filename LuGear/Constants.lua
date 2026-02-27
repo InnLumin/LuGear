@@ -1,6 +1,6 @@
 ---@alias SlotName "Main"|"Sub"|"Range"|"Ammo"|"Head"|"Neck"|"Ear1"|"Ear2"|"Body"|"Hands"|"Ring1"|"Ring2"|"Back"|"Waist"|"Legs"|"Feet"
 ---@alias JobName "GLOBAL"|"WAR"|"MNK"|"WHM"|"BLM"|"RDM"|"THF"|"PLD"|"DRK"|"BST"|"BRD"|"RNG"|"SAM"|"NIN"|"DRG"|"SMN"|"BLU"|"COR"|"PUP"|"DNC"|"SCH"|"GEO"|"RUN"
----@alias ItemType "Shield"|"Armor"|"Item"|"Hand-to-Hand"|"Dagger"|"Sword"|"Great Sword"|"Axe"|"Great Axe"|"Scythe"|"Polearm"|"Katana"|"Great Katana"|"Club"|"Staff"|"Archery"|"Marksmanship"|"Throwing"|"Main"|"Sub"|"Ranged"|"Ammo"|"Head"|"Neck"|"Earring"|"Body"|"Hands"|"Ring"|"Back"|"Waist"|"Legs"|"Feet"
+---@alias ItemType "Shield"|"Armor"|"Item"|"Hand-to-Hand"|"Dagger"|"Sword"|"Great Sword"|"Axe"|"Great Axe"|"Scythe"|"Polearm"|"Katana"|"Great Katana"|"Club"|"Staff"|"Archery"|"Marksmanship"|"Throwing"|"Main"|"Sub"|"Range"|"Ammo"|"Head"|"Neck"|"Earring"|"Body"|"Hands"|"Ring"|"Back"|"Waist"|"Legs"|"Feet"
 -- // ---@alias WeaponType "Hand-to-Hand"|"Dagger"|"Sword"|"Great Sword"|"Axe"|"Great Axe"|"Scythe"|"Polearm"|"Katana"|"Great Katana"|"Club"|"Staff"|"Archery"|"Marksmanship"|"Throwing"
 
 ---@alias Sets table<JobName, SetDefinitions>
@@ -62,7 +62,7 @@ local Module = {
 	Slots = {
 		"Main",
 		"Sub",
-		"Ranged",
+		"Range",
 		"Ammo",
 		"Head",
 		"Neck",
@@ -76,6 +76,49 @@ local Module = {
 		"Waist",
 		"Legs",
 		"Feet",
+	},
+	SlotsEnum = {
+		Main = "Main",
+		Sub = "Sub",
+		Range = "Range",
+		Ammo = "Ammo",
+		Head = "Head",
+		Neck = "Neck",
+		Ear1 = "Ear1",
+		Ear2 = "Ear2",
+		Body = "Body",
+		Hands = "Hands",
+		Ring1 = "Ring1",
+		Ring2 = "Ring2",
+		Back = "Back",
+		Waist = "Waist",
+		Legs = "Legs",
+		Feet = "Feet",
+	},
+	JobsEnum = {
+		GLOBAL = "GLOBAL",
+		WAR = "WAR",
+		MNK = "MNK",
+		WHM = "WHM",
+		BLM = "BLM",
+		RDM = "RDM",
+		THF = "THF",
+		PLD = "PLD",
+		DRK = "DRK",
+		BST = "BST",
+		BRD = "BRD",
+		RNG = "RNG",
+		SAM = "SAM",
+		NIN = "NIN",
+		DRG = "DRG",
+		SMN = "SMN",
+		BLU = "BLU",
+		COR = "COR",
+		PUP = "PUP",
+		DNC = "DNC",
+		SCH = "SCH",
+		GEO = "GEO",
+		RUN = "RUN",
 	},
 }
 

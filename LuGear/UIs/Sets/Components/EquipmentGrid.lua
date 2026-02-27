@@ -3,15 +3,17 @@ local State = require("State")
 local SetManager = require("Libs.SetManager")
 local Color = require("Libs.Color")
 local Theme = require("Libs.Theme")
-local ItemSystem = require("Libs.ItemSystem")
+local Constants = require("Constants")
 
 local TableFlags = bit.bor(ImGuiTableFlags_NoSavedSettings, ImGuiTableFlags_Borders, ImGuiTableFlags_RowBg)
 
+local Slots = Constants.Slots
+
 local EquipmentSlots = {
-	{ "Main", "Sub", "Ranged", "Ammo" },
-	{ "Head", "Neck", "Ear1", "Ear2" },
-	{ "Body", "Hands", "Ring1", "Ring2" },
-	{ "Back", "Waist", "Legs", "Feet" },
+	{ Slots[1], Slots[2], Slots[3], Slots[4] },
+	{ Slots[5], Slots[6], Slots[7], Slots[8] },
+	{ Slots[9], Slots[10], Slots[11], Slots[12] },
+	{ Slots[13], Slots[14], Slots[15], Slots[16] },
 }
 
 ---@param text string

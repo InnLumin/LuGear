@@ -4,30 +4,58 @@ local MemoryManager = AshitaCore:GetMemoryManager()
 local State = require("State")
 local GetAugments = require("Libs.GetAugments")
 local SetManager = require("Libs.SetManager")
+local Constants = require("Constants")
 
+-- Slot bitmasks for bitwise operations
 local SlotBitmasks = {
-	["Main"] = 1,
-	["Sub"] = 2,
-	["Ranged"] = 4,
-	["Ammo"] = 8,
-	["Head"] = 16,
-	["Neck"] = 512,
-	["Ear1"] = 6144,
-	["Ear2"] = 6144,
-	["Body"] = 32,
-	["Hands"] = 64,
-	["Ring1"] = 24576,
-	["Ring2"] = 24576,
-	["Back"] = 32768,
-	["Waist"] = 1024,
-	["Legs"] = 128,
-	["Feet"] = 256,
+	[Constants.SlotsEnum.Main] = 1,
+	[Constants.SlotsEnum.Sub] = 2,
+	[Constants.SlotsEnum.Range] = 4,
+	[Constants.SlotsEnum.Ammo] = 8,
+	[Constants.SlotsEnum.Head] = 16,
+	[Constants.SlotsEnum.Neck] = 512,
+	[Constants.SlotsEnum.Ear1] = 6144,
+	[Constants.SlotsEnum.Ear2] = 6144,
+	[Constants.SlotsEnum.Body] = 32,
+	[Constants.SlotsEnum.Hands] = 64,
+	[Constants.SlotsEnum.Ring1] = 24576,
+	[Constants.SlotsEnum.Ring2] = 24576,
+	[Constants.SlotsEnum.Back] = 32768,
+	[Constants.SlotsEnum.Waist] = 1024,
+	[Constants.SlotsEnum.Legs] = 128,
+	[Constants.SlotsEnum.Feet] = 256,
+}
+
+-- Job bitmasks for bitwise operations
+local JobBitmasks = {
+	[Constants.JobsEnum.WAR] = 0x00000002,
+	[Constants.JobsEnum.MNK] = 0x00000004,
+	[Constants.JobsEnum.WHM] = 0x00000008,
+	[Constants.JobsEnum.BLM] = 0x00000010,
+	[Constants.JobsEnum.RDM] = 0x00000020,
+	[Constants.JobsEnum.THF] = 0x00000040,
+	[Constants.JobsEnum.PLD] = 0x00000080,
+	[Constants.JobsEnum.DRK] = 0x00000100,
+	[Constants.JobsEnum.BST] = 0x00000200,
+	[Constants.JobsEnum.BRD] = 0x00000400,
+	[Constants.JobsEnum.RNG] = 0x00000800,
+	[Constants.JobsEnum.SAM] = 0x00001000,
+	[Constants.JobsEnum.NIN] = 0x00002000,
+	[Constants.JobsEnum.DRG] = 0x00004000,
+	[Constants.JobsEnum.SMN] = 0x00008000,
+	[Constants.JobsEnum.BLU] = 0x00010000,
+	[Constants.JobsEnum.COR] = 0x00020000,
+	[Constants.JobsEnum.PUP] = 0x00040000,
+	[Constants.JobsEnum.DNC] = 0x00080000,
+	[Constants.JobsEnum.SCH] = 0x00100000,
+	[Constants.JobsEnum.GEO] = 0x00200000,
+	[Constants.JobsEnum.RUN] = 0x00400000,
 }
 
 local TypeBitmasks = {
 	[1] = "Main",
 	[2] = "Sub",
-	[4] = "Ranged",
+	[4] = "Range",
 	[8] = "Ammo",
 	[16] = "Head",
 	[512] = "Neck",
@@ -39,31 +67,6 @@ local TypeBitmasks = {
 	[1024] = "Waist",
 	[128] = "Legs",
 	[256] = "Feet",
-}
-
-local JobBitmasks = {
-	["WAR"] = 0x00000002,
-	["MNK"] = 0x00000004,
-	["WHM"] = 0x00000008,
-	["BLM"] = 0x00000010,
-	["RDM"] = 0x00000020,
-	["THF"] = 0x00000040,
-	["PLD"] = 0x00000080,
-	["DRK"] = 0x00000100,
-	["BST"] = 0x00000200,
-	["BRD"] = 0x00000400,
-	["RNG"] = 0x00000800,
-	["SAM"] = 0x00001000,
-	["NIN"] = 0x00002000,
-	["DRG"] = 0x00004000,
-	["SMN"] = 0x00008000,
-	["BLU"] = 0x00010000,
-	["COR"] = 0x00020000,
-	["PUP"] = 0x00040000,
-	["DNC"] = 0x00080000,
-	["SCH"] = 0x00100000,
-	["GEO"] = 0x00200000,
-	["RUN"] = 0x00400000,
 }
 
 local SearchContainers = {
@@ -144,6 +147,7 @@ local function GetItemTypeString(item)
 	end
 
 	local Type = TypeBitmasks[item.Slots]
+
 	if Type then
 		return Type
 	end
