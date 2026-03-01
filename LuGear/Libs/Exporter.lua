@@ -4,6 +4,29 @@ local Constants = require("Constants")
 
 local Module = {}
 
+local Keywords = {
+	["Rng. Atk."] = "Rng.Atk.",
+}
+
+---comment
+---@param text string
+---@return string
+local function CleanAugmentSpacing(text)
+	if not text then
+		return ""
+	end
+
+	for trigger, replacement in pairs(Keywords) do
+		-- We escape the trigger to treat dots as literal characters
+		local safeTrigger = trigger:gsub("%.", "%%.")
+		text = text:gsub(safeTrigger, replacement)
+	end
+
+	text = text:gsub("%s+", " ")
+
+	return text:match("^%s*(.-)%s*$")
+end
+
 ---Formats augments as indexed Lua table entries
 ---@param augments string
 ---@return string
@@ -16,7 +39,7 @@ local function FormatAugments(augments)
 		PlayerPart = augments
 	end
 
-	PlayerPart = PlayerPart:gsub("%.%s+", ".")
+	PlayerPart = CleanAugmentSpacing(PlayerPart)
 
 	local function extract(text, prefix)
 		prefix = prefix or ""
@@ -31,7 +54,7 @@ local function FormatAugments(augments)
 	extract(PlayerPart)
 
 	if PetPart then
-		PetPart = PetPart:gsub("%.%s+", ".")
+		PetPart = CleanAugmentSpacing(PetPart)
 		extract(PetPart, "Pet: ")
 	end
 
@@ -117,9 +140,7 @@ function Module.ExportJobSets()
 
 	table.insert(Result, "}")
 
-	local Result = table.concat(Result, "\n")
-
-	return Result
+	return table.concat(Result, "\n")
 end
 
 ---Export the set itself
