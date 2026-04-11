@@ -4,7 +4,7 @@ local State = require("State")
 local OrderedSlots = {
 	"Main",
 	"Sub",
-	"Ranged",
+	"Range",
 	"Ammo",
 	"Head",
 	"Neck",
@@ -22,26 +22,37 @@ local OrderedSlots = {
 
 local Module = {}
 
----Formats augments as indexed Lua table entries
+local function NormalizeStatName(name)
+	name = (name or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	name = name:gsub("Critical hit rate", "Crit.hit rate")
+	return name
+end
+
 ---@param augments string
 ---@return string
 local function FormatAugments(augments)
 	local Stats = {}
 
-	-- 1. Standard parsing logic to get the data
 	local PlayerPart, PetPart = augments:match("^(.-)Pet:%s*(.*)$")
 	if not PlayerPart then
 		PlayerPart = augments
 	end
 
-	PlayerPart = PlayerPart:gsub("%.%s+", ".")
-
 	local function extract(text, prefix)
 		prefix = prefix or ""
-		for stat in text:gmatch("([^+-]+[+-]%d+)") do
-			local Clean = stat:match("^%s*(.-)%s*$")
-			if Clean and Clean ~= "" then
-				table.insert(Stats, prefix .. Clean)
+		if not text or text == "" then
+			return
+		end
+
+		text = text:gsub("[\r\n]+", " ")
+		text = text:gsub("%%%s*Critical hit rate", " Critical hit rate")
+		text = text:gsub("%.%s+", ".")
+		text = text:gsub("%s+", " ")
+
+		for stat_name, amount in text:gmatch("([^%+%-]-)([%+%-]%d+)") do
+			local name = NormalizeStatName(stat_name)
+			if name ~= "" then
+				table.insert(Stats, prefix .. name .. amount)
 			end
 		end
 	end
@@ -52,7 +63,6 @@ local function FormatAugments(augments)
 		extract(PetPart, "Pet: ")
 	end
 
-	-- 2. Format the table as a literal string for export
 	local FormattedEntries = {}
 	for Index, Value in ipairs(Stats) do
 		local Entry
@@ -65,11 +75,9 @@ local function FormatAugments(augments)
 		table.insert(FormattedEntries, Entry)
 	end
 
-	-- Join them together with commas and wrap in curly braces
 	return table.concat(FormattedEntries, ", ")
 end
 
----Generates a formatted Lua string representing the gear sets for Luashitacast
 ---@return string
 function Module.ExportJobSets()
 	local Sets = SetManager.GetSets(State.SelectedJob)
@@ -78,7 +86,6 @@ function Module.ExportJobSets()
 	table.insert(Lines, "local sets = {")
 
 	for SetName, Data in pairs(Sets) do
-		-- 1. Determine the correct Set Key Name
 		local FinalSetName = SetName
 		if Data.LevelSyncSet then
 			FinalSetName = SetName .. "_Priority"
@@ -86,64 +93,84 @@ function Module.ExportJobSets()
 
 		table.insert(Lines, string.format("    %s = {", FinalSetName))
 
-		for _, SlotName in ipairs(OrderedSlots) do
-			local GearTable = Data.Slots and Data.Slots[SlotName]
+		for _, RawSlotName in ipairs(OrderedSlots) do
+			local ExportSlotName = RawSlotName
+			local LookupNames = { RawSlotName }
 
-			if SlotName == "Ring L" or SlotName == "Ring R" then
-				SlotName = SlotName == "Ring L" and "Ring1" or "Ring2"
+			if RawSlotName == "Ring L" then
+				ExportSlotName = "Ring1"
+				LookupNames = { "Ring L", "Ring1" }
+			elseif RawSlotName == "Ring R" then
+				ExportSlotName = "Ring2"
+				LookupNames = { "Ring R", "Ring2" }
 			end
-			if SlotName == "Ear L" or SlotName == "Ear R" then
-				SlotName = SlotName == "Ear L" and "Ear1" or "Ear2"
+
+			if RawSlotName == "Ear L" then
+				ExportSlotName = "Ear1"
+				LookupNames = { "Ear L", "Ear1" }
+			elseif RawSlotName == "Ear R" then
+				ExportSlotName = "Ear2"
+				LookupNames = { "Ear R", "Ear2" }
+			end
+
+			local GearTable = nil
+			if Data.Slots then
+				for _, Key in ipairs(LookupNames) do
+					local t = Data.Slots[Key]
+					if t and #t > 0 then
+						GearTable = t
+						break
+					end
+				end
 			end
 
 			if GearTable and #GearTable > 0 then
 				if Data.LevelSyncSet then
-					-- Level Sync: Export all items, preserving augments
 					local GearList = {}
 					for _, GearObject in ipairs(GearTable) do
 						if GearObject.Augments and GearObject.Augments ~= "" then
-							-- Has augments, keep as object
 							local formattedAugments = FormatAugments(GearObject.Augments)
 							table.insert(
 								GearList,
 								string.format('{ Name = "%s", Augment = { %s } }', GearObject.Name, formattedAugments)
 							)
 						else
-							-- No augments, export as string
 							table.insert(GearList, string.format('"%s"', GearObject.Name))
 						end
 					end
-					table.insert(Lines, string.format("        %s = { %s },", SlotName, table.concat(GearList, ", ")))
+					table.insert(
+						Lines,
+						string.format("        %s = { %s },", ExportSlotName, table.concat(GearList, ", "))
+					)
 				else
-					-- Non-Level Sync: Export only first item
 					local FirstGear = GearTable[1]
 					if FirstGear.Augments and FirstGear.Augments ~= "" then
-						-- Has augments, keep as object
 						local formattedAugments = FormatAugments(FirstGear.Augments)
 						table.insert(
 							Lines,
 							string.format(
 								'        %s = { Name = "%s", Augment = { %s } },',
-								SlotName,
+								ExportSlotName,
 								FirstGear.Name,
 								formattedAugments
 							)
 						)
 					else
-						-- No augments, export as string
-						table.insert(Lines, string.format('        %s = "%s",', SlotName, FirstGear.Name))
+						table.insert(
+							Lines,
+							string.format('        %s = "%s",', ExportSlotName, FirstGear.Name)
+						)
 					end
 				end
 			end
 		end
+
 		table.insert(Lines, "    },")
 	end
 
 	table.insert(Lines, "}")
 
-	local Result = table.concat(Lines, "\n")
-
-	return Result
+	return table.concat(Lines, "\n")
 end
 
 return Module

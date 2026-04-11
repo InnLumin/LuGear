@@ -8,7 +8,7 @@ local Theme = require("Libs.Theme")
 local TableFlags = bit.bor(ImGuiTableFlags_NoSavedSettings, ImGuiTableFlags_Borders, ImGuiTableFlags_RowBg)
 
 local EquipmentSlots = {
-	{ "Main", "Sub", "Ranged", "Ammo" },
+	{ "Main", "Sub", "Range", "Ammo" },
 	{ "Head", "Neck", "Ear1", "Ear2" },
 	{ "Body", "Hands", "Ring1", "Ring2" },
 	{ "Back", "Waist", "Legs", "Feet" },

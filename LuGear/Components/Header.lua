@@ -10,7 +10,6 @@ local Dropdown = require("Components.Dropdown")
 local LevelSyncSetByDefault = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
 
 ---@return nil
--- Renders the job selection combo box
 local function JobSelection()
 	ImGui.AlignTextToFramePadding()
 	ImGui.Text("Job:")
@@ -30,7 +29,6 @@ local function JobSelection()
 end
 
 ---@return nil
--- Renders the set selection combo box for the current job
 local function SetSelection()
 	ImGui.AlignTextToFramePadding()
 	ImGui.Text("Current Set:")
@@ -61,7 +59,6 @@ local NewSetLevelSync = { LevelSyncSetByDefault }
 local NewSetSize = { 248, 0 }
 local NewSetPopup, ToggleNewSetPopup = Popup("New Set##NewSetPopup", NewSetSize)
 
--- Renders the button and modal for creating a new gear set
 ---@return nil
 local function NewSet()
 	if ImGui.Button("New Set") then
@@ -101,7 +98,6 @@ local EditSize = { 248, 0 }
 local DrawEditPopup, ToggleEditPopup = Popup("Edit##HeaderEdit", EditSize)
 
 ---@return nil
--- Renders the options button and modal for editing an existing set
 local function EditSet()
 	if State.SelectedSet == "" or State.SelectedSet == "None" then
 		return
@@ -129,7 +125,6 @@ local function EditSet()
 
 		ImGui.Separator()
 
-		-- Save
 		if ImGui.Button("Save Changes", { 120, 0 }) then
 			local OldName = State.SelectedSet
 			local NewName = EditSetName[1]
@@ -147,13 +142,11 @@ local function EditSet()
 
 		ImGui.SameLine()
 
-		-- Delete
 		if ImGui.Button("Delete Set", { 120, 0 }) then
 			SetManager.DeleteSet(State.SelectedJob, State.SelectedSet)
 			ToggleEditPopup()
 		end
 
-		--- Cancel
 		if ImGui.Button("Cancel", EditSize) then
 			ToggleEditPopup()
 		end
@@ -161,8 +154,11 @@ local function EditSet()
 end
 
 local ExportText = { "" }
-local ExportSize = { 512, 0 }
-local DrawExportPopup, ToggleExport = Popup("Export##HeaderExport", ExportSize)
+local ExportOpen = { false }
+local ExportInitSize = { false }
+local ExportButtonSize = { 240, 0 }
+local ExportDefaultSize = { 1200, 520 }
+local ExportWindowFlags = ImGuiWindowFlags_NoCollapse
 
 ---@return nil
 local function ExportSet()
@@ -170,29 +166,45 @@ local function ExportSet()
 		return
 	end
 
-	if ImGui.Button("Export" .. "##" .. "HeaderExportBtn") then
+	if ImGui.Button("Export##HeaderExportBtn") then
 		ExportText[1] = Exporter.ExportJobSets()
-		ToggleExport()
+		ExportOpen[1] = true
+		ExportInitSize[1] = true
 	end
 
-	DrawExportPopup(function()
-		ImGui.InputTextMultiline(
-			"##export_code",
-			ExportText,
-			#ExportText[1] + 1024,
-			{ -1, 200 },
-			ImGuiInputTextFlags_ReadOnly
-		)
-
-		ImGui.Separator()
-
-		if ImGui.Button("Copy to Clipboard", ExportSize) then
-			ImGui.SetClipboardText(ExportText[1])
+	if ExportOpen[1] then
+		if ExportInitSize[1] then
+			ImGui.SetNextWindowSize(ExportDefaultSize, ImGui.ImGuiCond_Always)
 		end
-		if ImGui.Button("Close", ExportSize) then
-			ToggleExport()
+
+		if ImGui.Begin("Export##HeaderExport", ExportOpen, ExportWindowFlags) then
+			ExportInitSize[1] = false
+
+			ImGui.TextDisabled("Resize this window if you need more room.")
+			ImGui.Separator()
+
+			if ImGui.BeginChild("##export_editor_host", { 0, -70 }, true) then
+				ImGui.InputTextMultiline(
+					"##export_code",
+					ExportText,
+					math.max(#ExportText[1] + 1024, 8192),
+					{ -1, -1 },
+					ImGuiInputTextFlags_ReadOnly
+				)
+				ImGui.EndChild()
+			end
+
+			if ImGui.Button("Copy to Clipboard", ExportButtonSize) then
+				ImGui.SetClipboardText(ExportText[1])
+			end
+			ImGui.SameLine()
+			if ImGui.Button("Close", ExportButtonSize) then
+				ExportOpen[1] = false
+			end
+
+			ImGui.End()
 		end
-	end)
+	end
 end
 
 return function()
