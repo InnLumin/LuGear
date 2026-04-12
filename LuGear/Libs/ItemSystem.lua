@@ -190,7 +190,7 @@ local function ProcessInventoryItem(item)
 		return
 	end
 
-	local Augments = GetAugments(item, RItem) -- Might have to check if it's equipped
+	local Augments = GetAugments(item, RItem)
 	local Id = tostring(RItem.Id) .. Augments
 
 	if ItemCache[Id] then

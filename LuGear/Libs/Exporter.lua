@@ -4,19 +4,34 @@ local Constants = require("Constants")
 
 local Module = {}
 
-local Keywords = {
+-- Default augments have a space between dots.
+
+local GlobalKeywords = {
+	["Critical hit rate"] = "Crit.hit rate",
+}
+
+local PlayerKeywords = {
+	["Rng. Acc."] = "Rng.Acc.",
+}
+
+local PetKeywords = {
 	["Rng. Atk."] = "Rng.Atk.",
 }
 
----comment
 ---@param text string
 ---@return string
-local function CleanAugmentSpacing(text)
+local function CleanAugmentSpacing(text, keywords)
 	if not text then
 		return ""
 	end
 
-	for trigger, replacement in pairs(Keywords) do
+	for trigger, replacement in pairs(GlobalKeywords) do
+		-- We escape the trigger to treat dots as literal characters
+		local safeTrigger = trigger:gsub("%.", "%%.")
+		text = text:gsub(safeTrigger, replacement)
+	end
+
+	for trigger, replacement in pairs(keywords) do
 		-- We escape the trigger to treat dots as literal characters
 		local safeTrigger = trigger:gsub("%.", "%%.")
 		text = text:gsub(safeTrigger, replacement)
@@ -39,10 +54,13 @@ local function FormatAugments(augments)
 		PlayerPart = augments
 	end
 
-	PlayerPart = CleanAugmentSpacing(PlayerPart)
+	PlayerPart = CleanAugmentSpacing(PlayerPart, PlayerKeywords)
 
 	local function extract(text, prefix)
 		prefix = prefix or ""
+
+		text = text:gsub("[\r\n]+", " ")
+
 		for stat in text:gmatch("([^+-]+[+-]%d+)") do
 			local Clean = stat:match("^%s*(.-)%s*$")
 			if Clean and Clean ~= "" then
@@ -54,7 +72,7 @@ local function FormatAugments(augments)
 	extract(PlayerPart)
 
 	if PetPart then
-		PetPart = CleanAugmentSpacing(PetPart)
+		PetPart = CleanAugmentSpacing(PetPart, PetKeywords)
 		extract(PetPart, "Pet: ")
 	end
 

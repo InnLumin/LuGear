@@ -7,6 +7,7 @@ local Popup = require("Components.Popup")
 local Dropdown = require("Components.Dropdown")
 local ItemSystem = require("Libs.ItemSystem")
 local UIUtil = require("Libs.UIUtil")
+local Theme = require("Libs.Theme")
 
 local LevelSyncSetByDefault = State.UserSettings.GlobalConfig.LevelSyncSetByDefault
 
@@ -166,8 +167,12 @@ local function EditSet()
 end
 
 local ExportText = { "" }
-local ExportSize = { 512, 0 }
-local DrawExportPopup, ToggleExport = Popup("Export##HeaderExport", ExportSize)
+local ExportOpen = { false }
+local ExportInitSize = { false }
+local ExportCopiedTime = 0
+local ExportButtonSize = { 240, 0 }
+local ExportDefaultSize = { 1200, 520 }
+local ExportWindowFlags = ImGuiWindowFlags_NoCollapse
 
 local function ExportSet()
 	local Set = SetManager.GetSet(State.SelectedJob, State.SelectedSet)
@@ -176,77 +181,122 @@ local function ExportSet()
 		return
 	end
 
-	local ButtonLabel = "Export"
-
-	if ImGui.Button(ButtonLabel, GetButtonSize(ButtonLabel)) then
+	if ImGui.Button("Export", GetButtonSize("Export")) then
 		ExportText[1] = Exporter.ExportSet(Set, State.SelectedSet)
-		ToggleExport()
+		ExportOpen[1] = true
+		ExportInitSize[1] = true
 	end
 
-	DrawExportPopup(function()
-		local TextWidth = UIUtil.AddPaddingToText(ExportText[1], 50)
-		local FinalWidth = TextWidth >= ExportSize[1] and TextWidth or ExportSize[1]
-
-		if ImGui.BeginChild("ExportScrollRegion", { -1, 248 }, false, ImGuiWindowFlags_HorizontalScrollbar) then
-			ImGui.InputTextMultiline(
-				"##export_code",
-				ExportText,
-				#ExportText[1] + 1024,
-				{ FinalWidth, -1 },
-				ImGuiInputTextFlags_ReadOnly
-			)
-
-			ImGui.EndChild()
+	if ExportOpen[1] then
+		if ExportInitSize[1] then
+			ImGui.SetNextWindowSize(ExportDefaultSize, ImGui.ImGuiCond_Always)
 		end
 
-		ImGui.Separator()
+		if ImGui.Begin("Export##HeaderExport", ExportOpen, ExportWindowFlags) then
+			ExportInitSize[1] = false
 
-		if ImGui.Button("Copy to Clipboard", ExportSize) then
-			ImGui.SetClipboardText(ExportText[1])
+			ImGui.TextDisabled("Resize this window if you need more room.")
+			ImGui.Separator()
+
+			if ImGui.BeginChild("##export_editor_host", { 0, -40 }, true, ImGuiWindowFlags_HorizontalScrollbar) then
+				ImGui.InputTextMultiline(
+					"##export_code",
+					ExportText,
+					math.max(#ExportText[1] + 1024, 8192),
+					{ -1, -1 },
+					ImGuiInputTextFlags_ReadOnly
+				)
+				ImGui.EndChild()
+			end
+
+			local IsCopied = (os.clock() - ExportCopiedTime) < 2
+			local CopyLabel = IsCopied and "Copied!" or "Copy to Clipboard"
+
+			if IsCopied then
+				ImGui.PushStyleColor(ImGuiCol_Button, Theme.SelectedTheme.Colors.Inactive)
+				ImGui.PushStyleColor(ImGuiCol_ButtonHovered, Theme.SelectedTheme.Colors.Inactive)
+				ImGui.PushStyleColor(ImGuiCol_ButtonActive, Theme.SelectedTheme.Colors.Inactive)
+			end
+
+			if ImGui.Button(CopyLabel, ExportButtonSize) and not IsCopied then
+				ImGui.SetClipboardText(ExportText[1])
+				ExportCopiedTime = os.clock()
+			end
+
+			if IsCopied then
+				ImGui.PopStyleColor(3)
+			end
+
+			ImGui.SameLine()
+			if ImGui.Button("Close##Export", ExportButtonSize) then
+				ExportOpen[1] = false
+			end
+
+			ImGui.End()
 		end
-		if ImGui.Button("Close", ExportSize) then
-			ToggleExport()
-		end
-	end)
+	end
 end
 
 local ExportAllText = { "" }
-local ExportAllSize = { 512, 0 }
-local DrawExportAllPopup, ToggleExportAll = Popup("Export All##HeaderExportAll", ExportAllSize)
+local ExportAllOpen = { false }
+local ExportAllInitSize = { false }
+local ExportAllCopiedTime = 0
 
 local function ExportAllSet()
-	local ButtonLabel = "Export All"
-
-	if ImGui.Button(ButtonLabel, GetButtonSize(ButtonLabel)) then
+	if ImGui.Button("Export All", GetButtonSize("Export All")) then
 		ExportAllText[1] = Exporter.ExportJobSets()
-		ToggleExportAll()
+		ExportAllOpen[1] = true
+		ExportAllInitSize[1] = true
 	end
 
-	DrawExportAllPopup(function()
-		local TextWidth = UIUtil.AddPaddingToText(ExportAllText[1], 50)
-		local FinalWidth = TextWidth >= ExportAllSize[1] and TextWidth or ExportAllSize[1]
-
-		if ImGui.BeginChild("ExportScrollRegion", { -1, 248 }, false, ImGuiWindowFlags_HorizontalScrollbar) then
-			ImGui.InputTextMultiline(
-				"##export_code_ExportAll",
-				ExportAllText,
-				#ExportText[1] + 1024,
-				{ FinalWidth, -1 },
-				ImGuiInputTextFlags_ReadOnly
-			)
-
-			ImGui.EndChild()
+	if ExportAllOpen[1] then
+		if ExportAllInitSize[1] then
+			ImGui.SetNextWindowSize(ExportDefaultSize, ImGui.ImGuiCond_Always)
 		end
 
-		ImGui.Separator()
+		if ImGui.Begin("Export All##HeaderExportAll", ExportAllOpen, ExportWindowFlags) then
+			ExportAllInitSize[1] = false
 
-		if ImGui.Button("Copy to Clipboard", ExportSize) then
-			ImGui.SetClipboardText(ExportAllText[1])
+			ImGui.TextDisabled("Resize this window if you need more room.")
+			ImGui.Separator()
+
+			if ImGui.BeginChild("##export_all_editor_host", { 0, -40 }, true, ImGuiWindowFlags_HorizontalScrollbar) then
+				ImGui.InputTextMultiline(
+					"##export_code_all",
+					ExportAllText,
+					math.max(#ExportAllText[1] + 1024, 8192),
+					{ -1, -1 },
+					ImGuiInputTextFlags_ReadOnly
+				)
+				ImGui.EndChild()
+			end
+
+			local IsCopied = (os.clock() - ExportAllCopiedTime) < 2
+			local CopyLabel = IsCopied and "Copied!" or "Copy to Clipboard"
+
+			if IsCopied then
+				ImGui.PushStyleColor(ImGuiCol_Button, Theme.SelectedTheme.Colors.Inactive)
+				ImGui.PushStyleColor(ImGuiCol_ButtonHovered, Theme.SelectedTheme.Colors.Inactive)
+				ImGui.PushStyleColor(ImGuiCol_ButtonActive, Theme.SelectedTheme.Colors.Inactive)
+			end
+
+			if ImGui.Button(CopyLabel, ExportButtonSize) and not IsCopied then
+				ImGui.SetClipboardText(ExportAllText[1])
+				ExportAllCopiedTime = os.clock()
+			end
+
+			if IsCopied then
+				ImGui.PopStyleColor(3)
+			end
+
+			ImGui.SameLine()
+			if ImGui.Button("Close##ExportAll", ExportButtonSize) then
+				ExportAllOpen[1] = false
+			end
+
+			ImGui.End()
 		end
-		if ImGui.Button("Close", ExportSize) then
-			ToggleExportAll()
-		end
-	end)
+	end
 end
 
 return function()
